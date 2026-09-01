@@ -37,7 +37,7 @@ export default function LoginPage() {
 
         {status === "sent" ? (
           <p className="text-sm text-text-muted">
-            Cek email kamu ya, link buat masuk udah meluncur 🚀
+            Cek email kamu ya, link buat masuk udah dikirim.
           </p>
         ) : (
           <form onSubmit={onSubmit} className="space-y-4">

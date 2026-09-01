@@ -6,8 +6,11 @@ aesthetic, adapted for a mobile-first personal finance PWA.
 ## Aesthetic
 
 Clean, modern, friendly. Dark-first but full light mode. Generous whitespace,
-card-based layout, rounded corners, subtle depth. Restrained emoji/sparkle
-accents for warmth (category icons, empty states) — never in dense data views.
+card-based layout, rounded corners, subtle depth.
+
+No emoji anywhere in the UI. Icons come from `lucide-react`. Category `icon`
+values are stored as lucide icon names (e.g. `wallet`, `car`) and mapped to
+components on the client.
 
 ## Color tokens
 
@@ -68,6 +71,7 @@ targets ≥ 44px.
 - `FAB` — pill/round, `primary`, bottom-right above the nav, for "add
   transaction".
 - `AmountText` — formats currency, colors by income/expense.
+- `CategoryIcon` — maps a stored lucide icon name to the `lucide-react` component.
 
 ## Motion
 

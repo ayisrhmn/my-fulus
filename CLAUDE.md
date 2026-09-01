@@ -18,6 +18,11 @@ gaul, "kamu" not "Anda"). Applies to UI labels, buttons, empty states, error
 messages, toasts, and the Supabase auth emails. Keep it readable — casual, not
 cringe. Code identifiers, comments, commit messages, and docs stay in English.
 
+## Icons
+
+No emoji in the UI or in seed data. Use `lucide-react` for every icon. Category
+`icon` values are stored as lucide icon names.
+
 ## Stack
 
 Next.js 16 (App Router, `src/`, `@/*` alias) · TypeScript · Tailwind CSS v4

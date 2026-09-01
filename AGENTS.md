@@ -5,6 +5,7 @@
 - Plan and phase status live in `docs/PLAN.md`.
 - User-facing copy is Bahasa Indonesia, casual Gen-Z tone ("kamu", not "Anda").
   Code, comments, commits, and docs stay in English.
+- No emoji in the UI or seed data. Use `lucide-react` for all icons.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

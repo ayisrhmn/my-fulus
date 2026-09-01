@@ -8,7 +8,7 @@ create table categories (
   user_id    uuid references auth.users (id) on delete cascade,  -- null = global default
   name       text not null,
   type       transaction_type not null,
-  icon       text,
+  icon       text,  -- lucide-react icon name, e.g. 'wallet'
   color      text,
   created_at timestamptz not null default now()
 );
@@ -52,13 +52,13 @@ create policy "transactions_all" on transactions
 -- Default global categories -------------------------------------------------
 
 insert into categories (user_id, name, type, icon) values
-  (null, 'Salary',        'income',  '💰'),
-  (null, 'Bonus',         'income',  '🎁'),
-  (null, 'Other Income',  'income',  '➕'),
-  (null, 'Food',          'expense', '🍽️'),
-  (null, 'Transport',     'expense', '🚗'),
-  (null, 'Shopping',      'expense', '🛍️'),
-  (null, 'Bills',         'expense', '🧾'),
-  (null, 'Health',        'expense', '💊'),
-  (null, 'Entertainment', 'expense', '🎬'),
-  (null, 'Other Expense', 'expense', '➖');
+  (null, 'Gaji',          'income',  'wallet'),
+  (null, 'Bonus',         'income',  'gift'),
+  (null, 'Pemasukan Lain','income',  'plus'),
+  (null, 'Makan',         'expense', 'utensils-crossed'),
+  (null, 'Transportasi',  'expense', 'car'),
+  (null, 'Belanja',       'expense', 'shopping-bag'),
+  (null, 'Tagihan',       'expense', 'receipt'),
+  (null, 'Kesehatan',     'expense', 'pill'),
+  (null, 'Hiburan',       'expense', 'clapperboard'),
+  (null, 'Pengeluaran Lain','expense','minus');
