@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { AmountText } from "@/components/ui/amount-text";
 import { CategoryIcon } from "@/components/category-icon";
@@ -21,6 +22,7 @@ export function TransactionRow({ tx }: { tx: TransactionWithCategory }) {
           </p>
         </div>
         <AmountText amount={tx.amount} type={tx.type} />
+        <ChevronRight className="size-4 shrink-0 text-text-muted" />
       </Card>
     </Link>
   );

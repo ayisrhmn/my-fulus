@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { saveCategory, deleteCategory } from "./actions";
 import { Button } from "@/components/ui/button";
+import { InlineDelete } from "@/components/ui/inline-delete";
 import { Select } from "@/components/ui/select";
 import { CATEGORY_ICON_NAMES, CategoryIcon } from "@/components/category-icon";
 import type { Category, TransactionType } from "@/lib/types";
@@ -26,7 +27,6 @@ export function CategoryForm({
   onDone: () => void;
 }) {
   const [serverError, setServerError] = useState("");
-  const [deleting, setDeleting] = useState(false);
 
   const {
     register,
@@ -59,11 +59,9 @@ export function CategoryForm({
   }
 
   async function onDelete() {
-    if (!category || !confirm("Hapus kategori ini? Transaksi lama jadi tanpa kategori."))
-      return;
-    setDeleting(true);
+    if (!category) return;
+    setServerError("");
     const res = await deleteCategory(category.id);
-    setDeleting(false);
     if (res.error) setServerError(res.error);
     else onDone();
   }
@@ -131,19 +129,15 @@ export function CategoryForm({
 
       {serverError && <p className="text-sm text-danger">{serverError}</p>}
 
-      <div className="flex gap-2">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
+      <div className="space-y-2">
+        <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? "Menyimpan…" : "Simpan"}
         </Button>
         {category && (
-          <Button
-            type="button"
-            variant="danger"
-            disabled={deleting}
-            onClick={onDelete}
-          >
-            {deleting ? "Menghapus…" : "Hapus"}
-          </Button>
+          <InlineDelete
+            onConfirm={onDelete}
+            label="Hapus kategori"
+          />
         )}
       </div>
     </form>

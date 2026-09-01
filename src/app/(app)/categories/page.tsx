@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { Tags } from "lucide-react";
+import { ChevronRight, Lock, Tags } from "lucide-react";
 import { getCategories } from "@/lib/queries";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,9 +21,9 @@ function Group({ title, items }: { title: string; items: Category[] }) {
             <CategoryIcon name={c.icon} />
             <span className="flex-1 font-medium">{c.name}</span>
             {custom ? (
-              <span className="text-[13px] text-text-muted">Ubah</span>
+              <ChevronRight className="size-4 shrink-0 text-text-muted" />
             ) : (
-              <span className="text-[13px] text-text-muted">Bawaan</span>
+              <Lock className="size-4 shrink-0 text-text-muted" />
             )}
           </Card>
         );

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { saveTransaction, deleteTransaction } from "./actions";
 import { Button } from "@/components/ui/button";
+import { InlineDelete } from "@/components/ui/inline-delete";
 import { Select } from "@/components/ui/select";
 import { MoneyInput } from "@/components/ui/money-input";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -32,7 +33,6 @@ export function TransactionForm({
 }) {
   const today = new Date().toISOString().slice(0, 10);
   const [serverError, setServerError] = useState("");
-  const [deleting, setDeleting] = useState(false);
 
   const {
     register,
@@ -69,10 +69,9 @@ export function TransactionForm({
   }
 
   async function onDelete() {
-    if (!transaction || !confirm("Hapus transaksi ini?")) return;
-    setDeleting(true);
+    if (!transaction) return;
+    setServerError("");
     const res = await deleteTransaction(transaction.id);
-    setDeleting(false);
     if (res.error) setServerError(res.error);
     else onDone();
   }
@@ -166,20 +165,11 @@ export function TransactionForm({
 
       {serverError && <p className="text-sm text-danger">{serverError}</p>}
 
-      <div className="flex gap-2">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
+      <div className="space-y-2">
+        <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? "Menyimpan…" : "Simpan"}
         </Button>
-        {transaction && (
-          <Button
-            type="button"
-            variant="danger"
-            disabled={deleting}
-            onClick={onDelete}
-          >
-            {deleting ? "Menghapus…" : "Hapus"}
-          </Button>
-        )}
+        {transaction && <InlineDelete onConfirm={onDelete} />}
       </div>
     </form>
   );
