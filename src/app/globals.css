@@ -85,3 +85,27 @@ h3 {
   font-optical-sizing: auto;
   letter-spacing: -0.01em;
 }
+
+/* Bottom sheet (Radix Dialog) */
+@keyframes sheet-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes sheet-rise {
+  from {
+    transform: translateY(100%);
+  }
+}
+.sheet-overlay[data-state="open"] {
+  animation: sheet-fade 150ms ease-out;
+}
+.sheet-content[data-state="open"] {
+  animation: sheet-rise 220ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet-overlay[data-state="open"],
+  .sheet-content[data-state="open"] {
+    animation: none;
+  }
+}

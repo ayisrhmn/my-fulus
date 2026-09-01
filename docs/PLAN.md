@@ -93,6 +93,11 @@ export, recurring transactions, shared accounts, automated AI insights.
   behind it.
 - Date input uses **react-day-picker** (v9), not the native `<input type="date">`
   — styled to match the retro tokens. Do not ship the browser default picker.
+- Dropdowns use a maintained headless library (**Radix UI Select**), not the
+  native `<select>` — styled to the retro tokens, keyboard + screen-reader safe.
+- Uncategorised transactions stay allowed (`category_id` nullable). Chart and
+  category filter surface them as an explicit "Tanpa kategori" bucket; on
+  category delete the FK `on delete set null` drops rows into that bucket.
 
 ## Phases
 
@@ -117,9 +122,9 @@ Installed `@supabase/supabase-js` and `@supabase/ssr`. Added:
 indexes, RLS policies, 10 default global categories. Run manually in the
 Supabase SQL editor.
 
-### Phase 3 — Magic link auth — DONE (login form rework pending, see "Forms")
-- `/login` — email input, `signInWithOtp`, confirmation state.
-- TODO: move the email field to react-hook-form validation.
+### Phase 3 — Magic link auth — DONE
+- `/login` — email field (react-hook-form validation), `signInWithOtp`,
+  confirmation state.
 - `/auth/callback` — `exchangeCodeForSession`, redirects to `/dashboard`.
 - `src/app/(app)/layout.tsx` — protected group layout, sign-out Server Action.
 - `src/app/(app)/dashboard/page.tsx` — placeholder.
@@ -139,22 +144,23 @@ Supabase SQL editor.
 - Mobile-first `(app)` shell: sticky header (brand, theme toggle, sign out),
   `max-w-md` main, sticky `BottomNav` (Ringkasan / Transaksi / Kategori) with
   safe-area inset.
-- Primitives so far: `Button` (primary/ghost/danger), `Card`, `Fab`,
-  `AmountText`. `Sheet` still to build (used by the Phase 5 form rework).
+- Primitives: `Button` (primary/ghost/danger), `Card`, `Fab`, `AmountText`,
+  `Sheet` (Radix Dialog bottom sheet), `Select` (Radix), `DatePicker`
+  (react-day-picker in a Radix Popover).
 - Placeholder pages for `/transactions` and `/categories`; dashboard shows dummy
   total cards.
 - Login page restyled onto the tokens.
 
-### Phase 5 — Transaction CRUD — DONE (form rework pending, see "Forms")
+### Phase 5 — Transaction CRUD — DONE
 - Server Actions in `transactions/actions.ts`: `saveTransaction` (insert/update),
-  `deleteTransaction`; server-side validation, `revalidatePath` + redirect.
+  `deleteTransaction` — object args, server-side validation, `revalidatePath`,
+  return `{ error? }` (no redirect; the sheet closes client-side).
 - `/transactions`: history list, newest first, `Fab` to add. `AmountText` (mono,
   signed, colored) + `formatIDR`/`formatDate` helpers.
+- Add/edit happen in a bottom `Sheet` driven by `?sheet=new` / `?sheet=<id>`
+  (shareable, back-button friendly). `TransactionForm` uses react-hook-form with
+  the `Select` and `DatePicker` primitives; delete lives in the sheet.
 - Category scoping relies on RLS (`getCategories` in `lib/queries.ts`).
-- TODO rework: replace the `/transactions/new` and `/transactions/[id]/edit`
-  routes with a `Sheet` opened from the list / `Fab`. Form uses react-hook-form
-  + react-day-picker. Keep the Server Actions as the submit target. `DeleteButton`
-  moves into the sheet.
 
 ### Phase 6 — Categories
 List defaults plus the user's custom categories. Create/edit/delete for custom
@@ -168,8 +174,9 @@ Date range (this month / last month / custom range) and category filter applied
 to the history list.
 
 ### Phase 9 — Expense chart
-Expense breakdown by category (bar or pie). Charting library chosen at this
-phase to avoid adding a dependency early; candidates: Recharts, unovis.
+Expense breakdown by category (bar or pie), including a "Tanpa kategori" bucket
+for null `category_id`. Charting library chosen at this phase to avoid adding a
+dependency early; candidates: Recharts, unovis.
 
 ### Phase 10 — PWA
 Serwist setup: `app/manifest.ts`, `app/sw.ts`, placeholder icons, offline app

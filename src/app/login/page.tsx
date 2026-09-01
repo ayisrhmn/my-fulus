@@ -1,33 +1,30 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
+type FormValues = { email: string };
+
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
-    "idle",
-  );
-  const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
+  const [serverError, setServerError] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({ defaultValues: { email: "" } });
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setStatus("sending");
-    setError("");
-
+  async function onSubmit({ email }: FormValues) {
+    setServerError("");
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${location.origin}/auth/callback` },
     });
-
-    if (error) {
-      setError(error.message);
-      setStatus("error");
-    } else {
-      setStatus("sent");
-    }
+    if (error) setServerError(error.message);
+    else setSent(true);
   }
 
   return (
@@ -35,26 +32,33 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-6">
         <h1 className="text-2xl font-semibold">MyFulus</h1>
 
-        {status === "sent" ? (
+        {sent ? (
           <p className="text-sm text-text-muted">
             Cek email kamu ya, link buat masuk udah dikirim.
           </p>
         ) : (
-          <form onSubmit={onSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <input
               type="email"
-              required
               autoFocus
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               placeholder="email kamu"
               className="w-full rounded-[var(--radius-sm)] border-[length:var(--border-w)] border-border bg-surface px-4 py-3 text-base outline-none focus:border-primary"
+              {...register("email", {
+                required: "Email wajib diisi.",
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: "Format email nggak valid.",
+                },
+              })}
             />
-            <Button type="submit" disabled={status === "sending"} className="w-full">
-              {status === "sending" ? "Lagi ngirim…" : "Kirim magic link"}
+            {errors.email && (
+              <p className="text-sm text-danger">{errors.email.message}</p>
+            )}
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+              {isSubmitting ? "Lagi ngirim…" : "Kirim magic link"}
             </Button>
-            {status === "error" && (
-              <p className="text-sm text-danger">Yah, gagal ngirim: {error}</p>
+            {serverError && (
+              <p className="text-sm text-danger">Yah, gagal ngirim: {serverError}</p>
             )}
           </form>
         )}
