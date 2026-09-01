@@ -11,6 +11,13 @@ This project uses **Bun**, not npm.
 - Run scripts: `bun run dev`, `bun run build`, `bun run lint`
 - Do not create or commit `package-lock.json`. The lockfile is `bun.lock`.
 
+## Copywriting
+
+All user-facing copy is in **Bahasa Indonesia**, casual Gen-Z tone (santai,
+gaul, "kamu" not "Anda"). Applies to UI labels, buttons, empty states, error
+messages, toasts, and the Supabase auth emails. Keep it readable — casual, not
+cringe. Code identifiers, comments, commit messages, and docs stay in English.
+
 ## Stack
 
 Next.js 16 (App Router, `src/`, `@/*` alias) · TypeScript · Tailwind CSS v4

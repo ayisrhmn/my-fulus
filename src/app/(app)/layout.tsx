@@ -26,7 +26,7 @@ export default async function AppLayout({
       <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
         <span className="font-semibold">MyFulus</span>
         <form action={signOut}>
-          <button className="text-sm text-zinc-500">Sign out</button>
+          <button className="text-sm text-zinc-500">Keluar</button>
         </form>
       </header>
       <main className="flex flex-1 flex-col p-4">{children}</main>

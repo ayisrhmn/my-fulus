@@ -8,9 +8,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-2">
-      <h1 className="text-xl font-semibold">Dashboard</h1>
-      <p className="text-sm text-zinc-500">Signed in as {user?.email}</p>
-      {/* ponytail: placeholder — totals and charts land in Phase 5+ */}
+      <h1 className="text-xl font-semibold">Ringkasan</h1>
+      <p className="text-sm text-zinc-500">Login sebagai {user?.email}</p>
+      {/* ponytail: placeholder — total & chart nyusul di Phase 5+ */}
     </div>
   );
 }

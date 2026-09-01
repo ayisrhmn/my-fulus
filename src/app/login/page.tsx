@@ -36,7 +36,7 @@ export default function LoginPage() {
 
         {status === "sent" ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Check your email for the login link.
+            Cek email kamu ya, link buat masuk udah meluncur 🚀
           </p>
         ) : (
           <form onSubmit={onSubmit} className="space-y-4">
@@ -46,7 +46,7 @@ export default function LoginPage() {
               autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder="email kamu"
               className="w-full rounded-lg border border-zinc-300 bg-transparent px-4 py-3 text-base outline-none focus:border-zinc-500 dark:border-zinc-700"
             />
             <button
@@ -54,10 +54,12 @@ export default function LoginPage() {
               disabled={status === "sending"}
               className="w-full rounded-lg bg-foreground py-3 text-base font-medium text-background disabled:opacity-60"
             >
-              {status === "sending" ? "Sending…" : "Send magic link"}
+              {status === "sending" ? "Lagi ngirim…" : "Kirim magic link"}
             </button>
             {status === "error" && (
-              <p className="text-sm text-red-600">{error}</p>
+              <p className="text-sm text-red-600">
+                Yah, gagal ngirim: {error}
+              </p>
             )}
           </form>
         )}
