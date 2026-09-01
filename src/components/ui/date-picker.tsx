@@ -6,6 +6,7 @@ import { DayPicker } from "react-day-picker";
 import { id as idLocale } from "date-fns/locale";
 import { CalendarDays } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import { iso } from "@/lib/date-range";
 import "react-day-picker/style.css";
 
 // value / onChange use ISO date strings (yyyy-mm-dd).
@@ -36,10 +37,7 @@ export function DatePicker({
             defaultMonth={selected}
             selected={selected}
             onSelect={(d) => {
-              if (d) {
-                const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-                onChange(local.toISOString().slice(0, 10));
-              }
+              if (d) onChange(iso(d)); // local calendar date, no UTC shift
               setOpen(false);
             }}
             style={

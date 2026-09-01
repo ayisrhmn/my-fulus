@@ -8,6 +8,7 @@ import { InlineDelete } from "@/components/ui/inline-delete";
 import { Select } from "@/components/ui/select";
 import { MoneyInput } from "@/components/ui/money-input";
 import { DatePicker } from "@/components/ui/date-picker";
+import { iso } from "@/lib/date-range";
 import type { Category, TransactionType, TransactionWithCategory } from "@/lib/types";
 
 type FormValues = {
@@ -31,7 +32,7 @@ export function TransactionForm({
   transaction?: TransactionWithCategory;
   onDone: () => void;
 }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = iso(new Date());
   const [serverError, setServerError] = useState("");
 
   const {
