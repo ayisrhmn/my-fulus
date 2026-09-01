@@ -32,7 +32,9 @@ export default async function AppLayout({
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <form action={signOut}>
-            <button className="px-2 text-sm text-text-muted">Keluar</button>
+            <button className="px-2 text-sm font-medium text-danger">
+              Keluar
+            </button>
           </form>
         </div>
       </header>

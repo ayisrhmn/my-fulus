@@ -83,6 +83,17 @@ dark mode.
 Explicitly out of scope for v1: multi-currency, budgeting/alerts, PDF/Excel
 export, recurring transactions, shared accounts, automated AI insights.
 
+## Forms
+
+- All forms use **react-hook-form** for validation — including the login page.
+  Submit still goes through Server Actions; RHF owns client-side validation and
+  field state.
+- CRUD forms (transaction add/edit) render inside a **bottom sheet**, not a
+  dedicated route. The `Sheet` component holds the form; the list stays mounted
+  behind it.
+- Date input uses **react-day-picker** (v9), not the native `<input type="date">`
+  — styled to match the retro tokens. Do not ship the browser default picker.
+
 ## Phases
 
 Each phase is one reviewable commit (or a short series). Work happens on `dev`;
@@ -106,8 +117,9 @@ Installed `@supabase/supabase-js` and `@supabase/ssr`. Added:
 indexes, RLS policies, 10 default global categories. Run manually in the
 Supabase SQL editor.
 
-### Phase 3 — Magic link auth — DONE
+### Phase 3 — Magic link auth — DONE (login form rework pending, see "Forms")
 - `/login` — email input, `signInWithOtp`, confirmation state.
+- TODO: move the email field to react-hook-form validation.
 - `/auth/callback` — `exchangeCodeForSession`, redirects to `/dashboard`.
 - `src/app/(app)/layout.tsx` — protected group layout, sign-out Server Action.
 - `src/app/(app)/dashboard/page.tsx` — placeholder.
@@ -127,21 +139,22 @@ Supabase SQL editor.
 - Mobile-first `(app)` shell: sticky header (brand, theme toggle, sign out),
   `max-w-md` main, sticky `BottomNav` (Ringkasan / Transaksi / Kategori) with
   safe-area inset.
-- Primitives so far: `Button` (primary/ghost/danger), `Card`. `Sheet`, `FAB`,
-  `AmountText` deferred to the phases that first use them.
+- Primitives so far: `Button` (primary/ghost/danger), `Card`, `Fab`,
+  `AmountText`. `Sheet` still to build (used by the Phase 5 form rework).
 - Placeholder pages for `/transactions` and `/categories`; dashboard shows dummy
   total cards.
 - Login page restyled onto the tokens.
 
-### Phase 5 — Transaction CRUD — DONE
+### Phase 5 — Transaction CRUD — DONE (form rework pending, see "Forms")
 - Server Actions in `transactions/actions.ts`: `saveTransaction` (insert/update),
   `deleteTransaction`; server-side validation, `revalidatePath` + redirect.
-- `TransactionForm` (client, `useActionState`): income/expense toggle filters the
-  category `<select>`, native `<input type="number|date">`, optional note.
-- Routes: `/transactions/new`, `/transactions/[id]/edit` (with `DeleteButton`).
-- `/transactions`: history list, newest first, each row links to edit; `Fab` to
-  add. `AmountText` (mono, signed, colored) + `formatIDR`/`formatDate` helpers.
+- `/transactions`: history list, newest first, `Fab` to add. `AmountText` (mono,
+  signed, colored) + `formatIDR`/`formatDate` helpers.
 - Category scoping relies on RLS (`getCategories` in `lib/queries.ts`).
+- TODO rework: replace the `/transactions/new` and `/transactions/[id]/edit`
+  routes with a `Sheet` opened from the list / `Fab`. Form uses react-hook-form
+  + react-day-picker. Keep the Server Actions as the submit target. `DeleteButton`
+  moves into the sheet.
 
 ### Phase 6 — Categories
 List defaults plus the user's custom categories. Create/edit/delete for custom
