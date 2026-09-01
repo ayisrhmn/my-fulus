@@ -7,16 +7,18 @@ import { monthBounds } from "@/lib/date-range";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
-import { TransactionRow } from "@/components/transaction-row";
-import { ExpenseByCategory } from "@/components/expense-by-category";
+import { ExpenseByCategory, type ExpenseRow } from "@/components/expense-by-category";
 import { TransactionFilters } from "./transaction-filters";
+import { TransactionList } from "./transaction-list";
 import { TransactionSheet } from "./transaction-sheet";
+import { PAGE_SIZE } from "./constants";
 import type { TransactionWithCategory } from "@/lib/types";
 
 type SearchParams = {
   from?: string;
   to?: string;
   cat?: string;
+  range?: string;
   sheet?: string;
 };
 
@@ -33,21 +35,39 @@ export default async function TransactionsPage({
 
   const supabase = await createClient();
 
-  let query = supabase
+  let listQuery = supabase
     .from("transactions")
     .select("*, categories(name, icon)")
     .gte("date", from)
     .lte("date", to)
     .order("date", { ascending: false })
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(0, PAGE_SIZE - 1);
+  let expenseQuery = supabase
+    .from("transactions")
+    .select("amount, category_id, categories(name, icon)")
+    .eq("type", "expense")
+    .gte("date", from)
+    .lte("date", to);
 
-  if (cat === "none") query = query.is("category_id", null);
-  else if (cat) query = query.eq("category_id", cat);
+  if (cat === "none") {
+    listQuery = listQuery.is("category_id", null);
+    expenseQuery = expenseQuery.is("category_id", null);
+  } else if (cat) {
+    listQuery = listQuery.eq("category_id", cat);
+    expenseQuery = expenseQuery.eq("category_id", cat);
+  }
 
-  const [{ data }, categories] = await Promise.all([query, getCategories()]);
-  const transactions = (data ?? []) as TransactionWithCategory[];
-  const expenses = transactions.filter((t) => t.type === "expense");
+  const [{ data: rows }, { data: expenseRows }, categories] = await Promise.all([
+    listQuery,
+    expenseQuery,
+    getCategories(),
+  ]);
+
+  const initialRows = (rows ?? []) as TransactionWithCategory[];
+  const expenses = (expenseRows ?? []) as unknown as ExpenseRow[];
   const filtered = sp.from != null || sp.to != null || cat !== "";
+  const filterKey = `${from}|${to}|${cat}`;
 
   return (
     <div className="space-y-4 pb-24">
@@ -59,7 +79,7 @@ export default async function TransactionsPage({
 
       <ExpenseByCategory expenses={expenses} />
 
-      {transactions.length === 0 ? (
+      {initialRows.length === 0 ? (
         filtered ? (
           <EmptyState
             icon={SearchX}
@@ -79,18 +99,17 @@ export default async function TransactionsPage({
           />
         )
       ) : (
-        <ul className="space-y-2">
-          {transactions.map((t) => (
-            <li key={t.id}>
-              <TransactionRow tx={t} />
-            </li>
-          ))}
-        </ul>
+        <TransactionList
+          key={filterKey}
+          initialRows={initialRows}
+          filters={{ from, to, cat }}
+          initialHasMore={initialRows.length === PAGE_SIZE}
+        />
       )}
 
       <Fab href="/transactions?sheet=new" label="Tambah" />
       <Suspense>
-        <TransactionSheet categories={categories} transactions={transactions} />
+        <TransactionSheet categories={categories} />
       </Suspense>
     </div>
   );

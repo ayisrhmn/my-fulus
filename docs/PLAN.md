@@ -195,7 +195,23 @@ Supabase SQL editor.
 - `ExpenseByCategory`: hand-rolled horizontal bar breakdown (no charting
   dependency) — icon, name, amount, percent, bar scaled to the largest slice.
   Sorted desc, "Tanpa kategori" bucket for null `category_id`, total in the
-  header. Renders on `/transactions` above the list, driven by the same filters.
+  header. Takes a light `ExpenseRow[]` from its own aggregate query (not the
+  paginated list). Shown on both `/transactions` (with the filters) and the
+  dashboard (current month).
+
+### Post-phase polish (2026-09-01)
+- **Infinite scroll** on `/transactions`: `TransactionList` (client) starts with
+  `PAGE_SIZE` (20) server-rendered rows and loads more via `loadMoreTransactions`
+  behind an `IntersectionObserver`. Resets on filter change (`key={filterKey}`).
+- **Date-grouped list**: rows grouped by `date` over the whole accumulated set
+  (no duplicate headers across pages). `formatDateHeader` → "Hari ini" /
+  "Kemarin" / weekday date. `TransactionRow` gains `showDate` for header-less
+  contexts (dashboard).
+- **Custom range fix**: explicit `?range=custom` param so the Custom chip and its
+  date pickers aren't misread as "this month" when the dates happen to match.
+- **Edit sheet** fetches the transaction by id (`getTransaction`) instead of
+  looking it up in the (now paginated) list.
+- Dashboard shows the current-month `ExpenseByCategory`.
 
 ### Phase 10 — PWA
 Serwist setup: `app/manifest.ts`, `app/sw.ts`, placeholder icons, offline app

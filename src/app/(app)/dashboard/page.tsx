@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TransactionRow } from "@/components/transaction-row";
+import {
+  ExpenseByCategory,
+  type ExpenseRow,
+} from "@/components/expense-by-category";
 import { formatIDR } from "@/lib/format";
 import type { TransactionWithCategory } from "@/lib/types";
 
@@ -21,21 +25,31 @@ export default async function DashboardPage() {
   const now = new Date();
   const { from, to } = monthRange(now);
 
-  const [{ data: userData }, { data: monthRows }, { data: recentRows }] =
-    await Promise.all([
-      supabase.auth.getUser(),
-      supabase
-        .from("transactions")
-        .select("amount, type")
-        .gte("date", from)
-        .lt("date", to),
-      supabase
-        .from("transactions")
-        .select("*, categories(name, icon)")
-        .order("date", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(5),
-    ]);
+  const [
+    { data: userData },
+    { data: monthRows },
+    { data: recentRows },
+    { data: expenseRows },
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from("transactions")
+      .select("amount, type")
+      .gte("date", from)
+      .lt("date", to),
+    supabase
+      .from("transactions")
+      .select("*, categories(name, icon)")
+      .order("date", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("transactions")
+      .select("amount, category_id, categories(name, icon)")
+      .eq("type", "expense")
+      .gte("date", from)
+      .lt("date", to),
+  ]);
 
   const name = userData.user?.email?.split("@")[0] ?? "kamu";
 
@@ -48,6 +62,7 @@ export default async function DashboardPage() {
   const balance = income - expense;
 
   const recent = (recentRows ?? []) as TransactionWithCategory[];
+  const expenses = (expenseRows ?? []) as unknown as ExpenseRow[];
   const monthLabel = now.toLocaleDateString("id-ID", {
     month: "long",
     year: "numeric",
@@ -88,6 +103,8 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
+      <ExpenseByCategory expenses={expenses} />
+
       <div className="flex items-center justify-between pt-2">
         <h2 className="text-[13px] font-medium text-text-muted">
           Transaksi terakhir
@@ -112,7 +129,7 @@ export default async function DashboardPage() {
         <ul className="space-y-2">
           {recent.map((t) => (
             <li key={t.id}>
-              <TransactionRow tx={t} />
+              <TransactionRow tx={t} showDate />
             </li>
           ))}
         </ul>

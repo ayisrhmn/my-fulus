@@ -6,7 +6,19 @@ import { CategoryIcon } from "@/components/category-icon";
 import { formatDate } from "@/lib/format";
 import type { TransactionWithCategory } from "@/lib/types";
 
-export function TransactionRow({ tx }: { tx: TransactionWithCategory }) {
+// showDate: include the date in the subtitle for contexts without date headers
+// (e.g. the dashboard recent list). The grouped list passes false.
+export function TransactionRow({
+  tx,
+  showDate = false,
+}: {
+  tx: TransactionWithCategory;
+  showDate?: boolean;
+}) {
+  const subtitle = showDate
+    ? [formatDate(tx.date), tx.description].filter(Boolean).join(" · ")
+    : tx.description;
+
   return (
     <Link href={`/transactions?sheet=${tx.id}`} scroll={false}>
       <Card className="flex items-center gap-3">
@@ -17,9 +29,9 @@ export function TransactionRow({ tx }: { tx: TransactionWithCategory }) {
           <p className="truncate font-medium">
             {tx.categories?.name ?? "Tanpa kategori"}
           </p>
-          <p className="truncate text-[13px] text-text-muted">
-            {tx.description || formatDate(tx.date)}
-          </p>
+          {subtitle && (
+            <p className="truncate text-[13px] text-text-muted">{subtitle}</p>
+          )}
         </div>
         <AmountText amount={tx.amount} type={tx.type} />
         <ChevronRight className="size-4 shrink-0 text-text-muted" />

@@ -20,7 +20,8 @@ export function TransactionFilters({ categories }: { categories: Category[] }) {
   const from = params.get("from") ?? def.from;
   const to = params.get("to") ?? def.to;
   const cat = params.get("cat") ?? "";
-  const preset = detectPreset(from, to);
+  const preset: RangePreset =
+    params.get("range") === "custom" ? "custom" : detectPreset(from, to);
 
   function apply(next: Record<string, string | null>) {
     const p = new URLSearchParams(params);
@@ -32,9 +33,9 @@ export function TransactionFilters({ categories }: { categories: Category[] }) {
   }
 
   function pickPreset(key: RangePreset) {
-    if (key === "this") apply({ from: null, to: null });
-    else if (key === "last") apply(monthBounds(-1));
-    else apply({ from, to }); // switch to custom, keep current dates editable
+    if (key === "this") apply({ from: null, to: null, range: null });
+    else if (key === "last") apply({ ...monthBounds(-1), range: null });
+    else apply({ range: "custom", from, to }); // keep current dates, show pickers
   }
 
   const catOptions = [
@@ -61,8 +62,14 @@ export function TransactionFilters({ categories }: { categories: Category[] }) {
 
       {preset === "custom" && (
         <div className="grid grid-cols-2 gap-2">
-          <DatePicker value={from} onChange={(v) => apply({ from: v, to })} />
-          <DatePicker value={to} onChange={(v) => apply({ from, to: v })} />
+          <DatePicker
+            value={from}
+            onChange={(v) => apply({ from: v, to, range: "custom" })}
+          />
+          <DatePicker
+            value={to}
+            onChange={(v) => apply({ from, to: v, range: "custom" })}
+          />
         </div>
       )}
 

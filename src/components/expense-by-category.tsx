@@ -1,32 +1,31 @@
 import { Card } from "@/components/ui/card";
 import { CategoryIcon } from "@/components/category-icon";
 import { formatIDR } from "@/lib/format";
-import type { TransactionWithCategory } from "@/lib/types";
+
+export type ExpenseRow = {
+  amount: number;
+  category_id: string | null;
+  categories: { name: string; icon: string | null } | null;
+};
 
 type Slice = { name: string; icon: string | null; amount: number };
 
-function aggregate(expenses: TransactionWithCategory[]): Slice[] {
+function aggregate(expenses: ExpenseRow[]): Slice[] {
   const map = new Map<string, Slice>();
   for (const t of expenses) {
     const key = t.category_id ?? "none";
-    const cur =
-      map.get(key) ??
-      {
-        name: t.categories?.name ?? "Tanpa kategori",
-        icon: t.categories?.icon ?? null,
-        amount: 0,
-      };
+    const cur = map.get(key) ?? {
+      name: t.categories?.name ?? "Tanpa kategori",
+      icon: t.categories?.icon ?? null,
+      amount: 0,
+    };
     cur.amount += Number(t.amount);
     map.set(key, cur);
   }
   return [...map.values()].sort((a, b) => b.amount - a.amount);
 }
 
-export function ExpenseByCategory({
-  expenses,
-}: {
-  expenses: TransactionWithCategory[];
-}) {
+export function ExpenseByCategory({ expenses }: { expenses: ExpenseRow[] }) {
   if (expenses.length === 0) return null;
 
   const slices = aggregate(expenses);
