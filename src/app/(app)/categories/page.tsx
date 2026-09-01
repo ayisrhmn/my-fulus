@@ -1,7 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { Tags } from "lucide-react";
 import { getCategories } from "@/lib/queries";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
 import { CategoryIcon } from "@/components/category-icon";
 import { CategorySheet } from "./category-sheet";
@@ -44,8 +47,24 @@ export default async function CategoriesPage() {
   return (
     <div className="space-y-6 pb-24">
       <h1 className="text-xl font-semibold">Kategori</h1>
-      <Group title="Pengeluaran" items={expense} />
-      <Group title="Pemasukan" items={income} />
+
+      {categories.length === 0 ? (
+        <EmptyState
+          icon={Tags}
+          title="Kategori masih kosong"
+          description="Belum ada kategori sama sekali. Bikin satu buat mulai milah transaksi."
+          action={
+            <Link href="/categories?sheet=new" scroll={false}>
+              <Button>Tambah kategori</Button>
+            </Link>
+          }
+        />
+      ) : (
+        <>
+          <Group title="Pengeluaran" items={expense} />
+          <Group title="Pemasukan" items={income} />
+        </>
+      )}
 
       <Fab href="/categories?sheet=new" label="Tambah" />
       <Suspense>
