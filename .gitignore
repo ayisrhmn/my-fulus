@@ -43,3 +43,8 @@ next-env.d.ts
 
 # claude code local
 .claude/
+
+# serwist / pwa (generated)
+public/sw.js
+public/sw.js.map
+public/swe-worker-*.js

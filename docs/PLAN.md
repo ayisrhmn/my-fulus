@@ -213,9 +213,21 @@ Supabase SQL editor.
   looking it up in the (now paginated) list.
 - Dashboard shows the current-month `ExpenseByCategory`.
 
-### Phase 10 — PWA
-Serwist setup: `app/manifest.ts`, `app/sw.ts`, placeholder icons, offline app
-shell. Installable on mobile.
+### Phase 10 — PWA — DONE
+- Serwist (`@serwist/next`): `src/app/sw.ts` (precache + `defaultCache` runtime
+  caching + `/offline` document fallback), built to `public/sw.js` (gitignored).
+- `next.config.ts` wraps with `withSerwistInit` (disabled in dev).
+- **Build now runs `next build --webpack`** — `@serwist/next` v9 uses a webpack
+  plugin and is not yet Turbopack-compatible (this is the fallback anticipated in
+  Known Risk #1). `dev` stays on Turbopack (SW disabled there anyway).
+- `src/app/manifest.ts` → `/manifest.webmanifest` (name, standalone, portrait,
+  retro theme/background colors, 192/512/maskable icons).
+- Icons from `public/logo/`: `icon.png` (wordmark) → `public/icon-{192,512}.png`
+  + `icon-maskable-512.png` + `src/app/apple-icon.png` (180); `favicon.png`
+  ("M" mark) → `src/app/icon.png` (Next favicon).
+- `src/app/offline/page.tsx`; proxy + auth guard treat `/offline` as public.
+- `tsconfig` adds the `webworker` lib; proxy matcher excludes `sw.js` / static
+  script + json; eslint ignores the generated `public/sw.js`.
 
 ### Phase 11 — Deploy to Vercel
 Configure env vars in Vercel, verify the production build, test PWA install on a

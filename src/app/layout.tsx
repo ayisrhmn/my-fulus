@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Space_Grotesk, Space_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
@@ -21,8 +21,19 @@ const mono = Space_Mono({
 });
 
 export const metadata: Metadata = {
+  applicationName: "MyFulus",
   title: "MyFulus",
   description: "Personal finance tracker",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "MyFulus",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#c4562b",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
