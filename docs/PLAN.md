@@ -85,24 +85,28 @@ the developer merges and pushes.
 Scaffold Next.js 16 + TypeScript + Tailwind v4 + ESLint (`src/` dir, `@/*`
 alias). `git init`, initial commit on `main`. `.claude/` and `.env*` gitignored.
 
-### Phase 1 — Supabase wiring
-Install `@supabase/supabase-js` and `@supabase/ssr`. Add:
+### Phase 1 — Supabase wiring — DONE
+Installed `@supabase/supabase-js` and `@supabase/ssr`. Added:
 - `src/lib/supabase/client.ts` — browser client
 - `src/lib/supabase/server.ts` — server client (Server Components, Route Handlers)
-- `src/middleware.ts` — refresh the auth session on each request
-Document the required env vars (already listed above).
+- `src/lib/supabase/middleware.ts` — `updateSession` helper; also route guard
+- `src/proxy.ts` — Next.js 16 renamed `middleware` to `proxy`; runs `updateSession`
+- `.env.example` — required env vars
 
-### Phase 2 — Database schema + RLS
-`supabase/migrations/0001_init.sql`: enum, both tables, RLS policies, default
-category seed. Short README note on how to run it.
+### Phase 2 — Database schema + RLS — DONE
+`supabase/migrations/0001_init.sql`: `transaction_type` enum, both tables,
+indexes, RLS policies, 10 default global categories. Run manually in the
+Supabase SQL editor.
 
-### Phase 3 — Magic link auth
-- `/login` page: email input, sends the magic link, shows a confirmation state.
-- `/auth/callback` route handler: exchanges the code for a session, redirects to
-  the dashboard.
-- Protected app layout; sign-out action.
-- Manual step for the developer: set the Redirect URL and email template in the
-  Supabase dashboard (instructions provided in this phase).
+### Phase 3 — Magic link auth — DONE
+- `/login` — email input, `signInWithOtp`, confirmation state.
+- `/auth/callback` — `exchangeCodeForSession`, redirects to `/dashboard`.
+- `src/app/(app)/layout.tsx` — protected group layout, sign-out Server Action.
+- `src/app/(app)/dashboard/page.tsx` — placeholder.
+- `/` redirects to `/dashboard`; proxy bounces unauthenticated users to `/login`.
+- Manual step for the developer: set the Site URL / Redirect URL in the Supabase
+  dashboard (Authentication > URL Configuration) to include
+  `http://localhost:3000/auth/callback`.
 
 ### Phase 4 — App shell + dark mode
 Mobile-first layout. Bottom navigation sized for thumb reach. `next-themes` for a
