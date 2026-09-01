@@ -22,6 +22,11 @@ export function TransactionFilters({ categories }: { categories: Category[] }) {
   const cat = params.get("cat") ?? "";
   const preset: RangePreset =
     params.get("range") === "custom" ? "custom" : detectPreset(from, to);
+  const dirty =
+    params.has("from") ||
+    params.has("to") ||
+    params.has("range") ||
+    cat !== "";
 
   function apply(next: Record<string, string | null>) {
     const p = new URLSearchParams(params);
@@ -46,7 +51,7 @@ export function TransactionFilters({ categories }: { categories: Category[] }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {presets.map((p) => (
           <button
             key={p.key}
@@ -58,6 +63,14 @@ export function TransactionFilters({ categories }: { categories: Category[] }) {
             {p.label}
           </button>
         ))}
+        {dirty && (
+          <button
+            onClick={() => router.push("/transactions", { scroll: false })}
+            className="rounded-full border-[length:var(--border-w)] border-border bg-surface px-3 py-1.5 text-[13px] font-medium text-text-muted"
+          >
+            Reset
+          </button>
+        )}
       </div>
 
       {preset === "custom" && (
