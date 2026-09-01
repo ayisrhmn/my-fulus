@@ -3,6 +3,8 @@
 - Package manager is **Bun**, not npm. Use `bun install`, `bun add`, `bun run <script>`.
   Never commit `package-lock.json`; the lockfile is `bun.lock`.
 - Plan and phase status live in `docs/PLAN.md`.
+- User-facing copy is Bahasa Indonesia, casual Gen-Z tone ("kamu", not "Anda").
+  Code, comments, commits, and docs stay in English.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
