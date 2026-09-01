@@ -172,8 +172,15 @@ Supabase SQL editor.
   `Tag` fallback — avoids bundling all of lucide.
 - Delete relies on the transactions FK `on delete set null`.
 
-### Phase 7 — Dashboard
-Current-month totals: income, expense, balance.
+### Phase 7 — Dashboard — DONE
+- Current-month totals: balance (large card, red when negative), income, expense
+  — summed in JS from a `date >= first-of-month AND < first-of-next` query.
+- Month label (`id-ID` long form) under the title.
+- "Transaksi terakhir": 5 most recent via shared `TransactionRow`, with a
+  "Lihat semua" link; `EmptyState` when there are none.
+- `TransactionRow` extracted to `src/components/` and reused by the transactions
+  list too.
+- Period is fixed to the current month until Phase 8 adds the selector.
 
 ### Phase 8 — Filters
 Date range (this month / last month / custom range) and category filter applied

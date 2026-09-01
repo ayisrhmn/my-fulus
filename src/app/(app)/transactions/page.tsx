@@ -4,11 +4,9 @@ import { ReceiptText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCategories } from "@/lib/queries";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
-import { AmountText } from "@/components/ui/amount-text";
-import { formatDate } from "@/lib/format";
+import { TransactionRow } from "@/components/transaction-row";
 import { TransactionSheet } from "./transaction-sheet";
 import type { TransactionWithCategory } from "@/lib/types";
 
@@ -44,19 +42,7 @@ export default async function TransactionsPage() {
         <ul className="space-y-2">
           {transactions.map((t) => (
             <li key={t.id}>
-              <Link href={`/transactions?sheet=${t.id}`} scroll={false}>
-                <Card className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">
-                      {t.categories?.name ?? "Tanpa kategori"}
-                    </p>
-                    <p className="truncate text-[13px] text-text-muted">
-                      {t.description || formatDate(t.date)}
-                    </p>
-                  </div>
-                  <AmountText amount={t.amount} type={t.type} />
-                </Card>
-              </Link>
+              <TransactionRow tx={t} />
             </li>
           ))}
         </ul>
