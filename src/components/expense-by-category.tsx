@@ -25,12 +25,27 @@ function aggregate(expenses: ExpenseRow[]): Slice[] {
   return [...map.values()].sort((a, b) => b.amount - a.amount);
 }
 
-export function ExpenseByCategory({ expenses }: { expenses: ExpenseRow[] }) {
+export function ExpenseByCategory({
+  expenses,
+  limit,
+}: {
+  expenses: ExpenseRow[];
+  limit?: number;
+}) {
   if (expenses.length === 0) return null;
 
-  const slices = aggregate(expenses);
-  const total = slices.reduce((s, x) => s + x.amount, 0);
-  const max = slices[0].amount;
+  const all = aggregate(expenses);
+  const total = all.reduce((s, x) => s + x.amount, 0);
+
+  let slices = all;
+  if (limit && all.length > limit) {
+    const rest = all.slice(limit).reduce((s, x) => s + x.amount, 0);
+    slices = [
+      ...all.slice(0, limit),
+      { name: "Lainnya", icon: null, amount: rest },
+    ];
+  }
+  const max = Math.max(...slices.map((s) => s.amount));
 
   return (
     <Card className="space-y-3">

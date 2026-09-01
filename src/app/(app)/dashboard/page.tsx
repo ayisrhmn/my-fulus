@@ -103,7 +103,7 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      <ExpenseByCategory expenses={expenses} />
+      <ExpenseByCategory expenses={expenses} limit={5} />
 
       <div className="flex items-center justify-between pt-2">
         <h2 className="text-[13px] font-medium text-text-muted">
