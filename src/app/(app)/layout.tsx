@@ -27,7 +27,9 @@ export default async function AppLayout({
   return (
     <div className="flex flex-1 flex-col">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-surface px-4 py-3">
-        <span className="font-semibold">MyFulus</span>
+        <span className="font-[family-name:var(--font-display)] text-lg font-semibold">
+          MyFulus
+        </span>
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <form action={signOut}>
