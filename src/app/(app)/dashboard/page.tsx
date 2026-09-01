@@ -15,16 +15,16 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 gap-3">
         <Card>
           <p className="text-[13px] text-text-muted">Pemasukan</p>
-          <p className="mt-1 text-lg font-semibold text-income">Rp0</p>
+          <p className="mt-1 font-mono text-lg font-bold text-income">Rp0</p>
         </Card>
         <Card>
           <p className="text-[13px] text-text-muted">Pengeluaran</p>
-          <p className="mt-1 text-lg font-semibold text-expense">Rp0</p>
+          <p className="mt-1 font-mono text-lg font-bold text-expense">Rp0</p>
         </Card>
       </div>
       <Card>
         <p className="text-[13px] text-text-muted">Saldo bulan ini</p>
-        <p className="mt-1 text-2xl font-semibold">Rp0</p>
+        <p className="mt-1 font-mono text-2xl font-bold">Rp0</p>
       </Card>
 
       {/* ponytail: angka masih dummy — diisi dari query di Phase 7 */}

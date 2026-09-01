@@ -48,7 +48,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="email kamu"
-              className="w-full rounded-[var(--radius-sm)] border border-border bg-transparent px-4 py-3 text-base outline-none focus:border-primary"
+              className="w-full rounded-[var(--radius-sm)] border-[length:var(--border-w)] border-border bg-surface px-4 py-3 text-base outline-none focus:border-primary"
             />
             <Button type="submit" disabled={status === "sending"} className="w-full">
               {status === "sending" ? "Lagi ngirim…" : "Kirim magic link"}
