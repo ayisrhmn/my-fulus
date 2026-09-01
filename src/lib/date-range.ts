@@ -1,6 +1,7 @@
-const pad = (n: number) => String(n).padStart(2, "0");
-export const iso = (d: Date) =>
-  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+import { format } from "date-fns";
+
+// Local calendar date as yyyy-MM-dd (no UTC shift).
+export const iso = (d: Date) => format(d, "yyyy-MM-dd");
 
 // Inclusive [from, to] bounds for a calendar month. offset 0 = this month, -1 = last.
 export function monthBounds(offset = 0, now = new Date()) {
