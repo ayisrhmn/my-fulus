@@ -33,6 +33,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
 Service role key is not required for the MVP.
 
+## Copywriting
+
+All user-facing copy is Bahasa Indonesia in a casual Gen-Z tone ("kamu", not
+"Anda"): UI labels, buttons, empty states, errors, toasts, and the Supabase
+auth emails. Code, comments, commit messages, and docs stay in English.
+
 ## Database schema (target)
 
 Enum `transaction_type`: `income` | `expense`.
@@ -109,11 +115,17 @@ Supabase SQL editor.
 - Manual step for the developer: set the Site URL / Redirect URL in the Supabase
   dashboard (Authentication > URL Configuration) to include
   `http://localhost:3000/auth/callback`.
+- Manual step: the magic-link email is a Supabase default (English). Rewrite it
+  in Bahasa Indonesia at Authentication > Email Templates > Magic Link. Keep the
+  `{{ .ConfirmationURL }}` token. This lives in the dashboard, not the repo
+  (repo-managed templates would need the Supabase CLI config, out of scope).
 
 ### Phase 4 — App shell + dark mode
 Mobile-first layout. Bottom navigation sized for thumb reach. `next-themes` for a
-manual light/dark toggle that defaults to the system preference. Theme tokens
-defined in `globals.css` under `@theme`.
+manual light/dark toggle that defaults to the system preference. Theme tokens and
+component primitives per `docs/DESIGN.md` (color/radius/shadow tokens in
+`globals.css` `@theme`; `Button`, `Input`, `Card`, `Sheet`, `BottomNav`, `FAB`,
+`AmountText`).
 
 ### Phase 5 — Transaction CRUD
 Add/edit form (amount, type, category, date, description). Delete. History list
