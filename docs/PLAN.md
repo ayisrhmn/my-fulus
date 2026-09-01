@@ -133,9 +133,15 @@ Supabase SQL editor.
   total cards.
 - Login page restyled onto the tokens.
 
-### Phase 5 — Transaction CRUD
-Add/edit form (amount, type, category, date, description). Delete. History list
-sorted by date descending. Mutations via Server Actions.
+### Phase 5 — Transaction CRUD — DONE
+- Server Actions in `transactions/actions.ts`: `saveTransaction` (insert/update),
+  `deleteTransaction`; server-side validation, `revalidatePath` + redirect.
+- `TransactionForm` (client, `useActionState`): income/expense toggle filters the
+  category `<select>`, native `<input type="number|date">`, optional note.
+- Routes: `/transactions/new`, `/transactions/[id]/edit` (with `DeleteButton`).
+- `/transactions`: history list, newest first, each row links to edit; `Fab` to
+  add. `AmountText` (mono, signed, colored) + `formatIDR`/`formatDate` helpers.
+- Category scoping relies on RLS (`getCategories` in `lib/queries.ts`).
 
 ### Phase 6 — Categories
 List defaults plus the user's custom categories. Create/edit/delete for custom
