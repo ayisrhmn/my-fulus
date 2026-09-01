@@ -1,8 +1,11 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { ReceiptText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCategories } from "@/lib/queries";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
 import { AmountText } from "@/components/ui/amount-text";
 import { formatDate } from "@/lib/format";
@@ -27,9 +30,16 @@ export default async function TransactionsPage() {
       <h1 className="text-xl font-semibold">Transaksi</h1>
 
       {transactions.length === 0 ? (
-        <p className="text-[13px] text-text-muted">
-          Belum ada transaksi. Tap tombol + buat nambah.
-        </p>
+        <EmptyState
+          icon={ReceiptText}
+          title="Dompet masih adem"
+          description="Belum ada transaksi tercatat. Mulai dari yang pertama, yuk."
+          action={
+            <Link href="/transactions?sheet=new" scroll={false}>
+              <Button>Tambah transaksi</Button>
+            </Link>
+          }
+        />
       ) : (
         <ul className="space-y-2">
           {transactions.map((t) => (

@@ -5,6 +5,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { saveTransaction, deleteTransaction } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
+import { MoneyInput } from "@/components/ui/money-input";
 import { DatePicker } from "@/components/ui/date-picker";
 import type { Category, TransactionType, TransactionWithCategory } from "@/lib/types";
 
@@ -101,17 +102,20 @@ export function TransactionForm({
 
       <div>
         <label className={label}>Jumlah</label>
-        <input
-          type="number"
-          inputMode="numeric"
-          step="1"
-          autoFocus
-          placeholder="0"
-          className={input}
-          {...register("amount", {
-            required: "Jumlah wajib diisi.",
-            min: { value: 1, message: "Jumlah harus lebih dari 0." },
-          })}
+        <Controller
+          control={control}
+          name="amount"
+          rules={{
+            validate: (v) =>
+              (typeof v === "number" && v > 0) || "Jumlah harus lebih dari 0.",
+          }}
+          render={({ field }) => (
+            <MoneyInput
+              autoFocus
+              value={field.value as number | ""}
+              onChange={field.onChange}
+            />
+          )}
         />
         {errors.amount && (
           <p className="mt-1 text-sm text-danger">{errors.amount.message}</p>
