@@ -1,3 +1,9 @@
+# MyFulus project rules
+
+- Package manager is **Bun**, not npm. Use `bun install`, `bun add`, `bun run <script>`.
+  Never commit `package-lock.json`; the lockfile is `bun.lock`.
+- Plan and phase status live in `docs/PLAN.md`.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

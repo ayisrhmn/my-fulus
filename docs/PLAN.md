@@ -12,7 +12,8 @@ configuration change, not a rewrite. Mobile-first PWA.
 | Styling | Tailwind CSS | 4.3.3 | v4: configuration lives in CSS via `@theme`; there is no `tailwind.config.js`. |
 | Database + Auth | Supabase (Postgres) | `@supabase/supabase-js` latest + `@supabase/ssr` 0.12.4 | `@supabase/ssr` is the official replacement for the deprecated `auth-helpers` packages. |
 | PWA | Serwist (`@serwist/next`) | latest | `next-pwa` is unmaintained; Serwist is its successor and supports Next.js 16. |
-| Deploy | Vercel | free tier | |
+| Deploy | Vercel | free tier | Set install command to `bun install`. |
+| Package manager | Bun | 1.3.x | Lockfile `bun.lock`. No `package-lock.json`. |
 
 ## Project conventions
 
@@ -84,6 +85,7 @@ the developer merges and pushes.
 ### Phase 0 — Project init — DONE
 Scaffold Next.js 16 + TypeScript + Tailwind v4 + ESLint (`src/` dir, `@/*`
 alias). `git init`, initial commit on `main`. `.claude/` and `.env*` gitignored.
+Migrated the package manager from npm to Bun (`bun.lock`, no `package-lock.json`).
 
 ### Phase 1 — Supabase wiring — DONE
 Installed `@supabase/supabase-js` and `@supabase/ssr`. Added:
