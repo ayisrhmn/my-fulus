@@ -162,9 +162,15 @@ Supabase SQL editor.
   the `Select` and `DatePicker` primitives; delete lives in the sheet.
 - Category scoping relies on RLS (`getCategories` in `lib/queries.ts`).
 
-### Phase 6 — Categories
-List defaults plus the user's custom categories. Create/edit/delete for custom
-categories only.
+### Phase 6 — Categories — DONE
+- `/categories`: grouped by Pengeluaran / Pemasukan. Default rows tagged
+  "Bawaan" and read-only; custom rows link into the edit sheet.
+- `saveCategory` / `deleteCategory` server actions, both scoped with
+  `.eq("user_id", user.id)` so global defaults can't be touched.
+- `CategoryForm` (react-hook-form): name, type toggle, icon picker.
+- `CategoryIcon` component: explicit lucide whitelist (`CATEGORY_ICON_NAMES`),
+  `Tag` fallback — avoids bundling all of lucide.
+- Delete relies on the transactions FK `on delete set null`.
 
 ### Phase 7 — Dashboard
 Current-month totals: income, expense, balance.
