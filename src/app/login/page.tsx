@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { DevLogin } from "./dev-login";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -59,8 +58,6 @@ export default function LoginPage() {
             )}
           </form>
         )}
-
-        {process.env.NODE_ENV === "development" && <DevLogin />}
       </div>
     </main>
   );
