@@ -1,0 +1,148 @@
+# MyFulus — Implementation Plan
+
+Personal finance tracker. Single-user for now, architected so multi-user is a
+configuration change, not a rewrite. Mobile-first PWA.
+
+## Stack (versions verified at setup, 2026-09-01)
+
+| Concern | Choice | Version | Notes |
+|---|---|---|---|
+| Framework | Next.js (App Router) | 16.3.4 | Active LTS. Turbopack is the default bundler. |
+| Language | TypeScript | 5.x | |
+| Styling | Tailwind CSS | 4.3.3 | v4: configuration lives in CSS via `@theme`; there is no `tailwind.config.js`. |
+| Database + Auth | Supabase (Postgres) | `@supabase/supabase-js` latest + `@supabase/ssr` 0.12.4 | `@supabase/ssr` is the official replacement for the deprecated `auth-helpers` packages. |
+| PWA | Serwist (`@serwist/next`) | latest | `next-pwa` is unmaintained; Serwist is its successor and supports Next.js 16. |
+| Deploy | Vercel | free tier | |
+
+## Project conventions
+
+- Source under `src/`, import alias `@/*`.
+- App Router: route handlers for auth callback, Server Actions for mutations.
+- Supabase access split into browser client, server client, and middleware
+  session refresh, per the App Router SSR pattern.
+- Environment variables are supplied manually by the developer. Nothing in this
+  repo generates or assumes credentials. `.env*` is gitignored.
+
+Required environment variables (`.env.local`):
+
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
+
+Service role key is not required for the MVP.
+
+## Database schema (target)
+
+Enum `transaction_type`: `income` | `expense`.
+
+**categories**
+- `id` uuid pk
+- `user_id` uuid null — null means a global default category shared by all users
+- `name` text
+- `type` transaction_type
+- `icon` text null, `color` text null
+- `created_at` timestamptz default now()
+
+**transactions**
+- `id` uuid pk
+- `user_id` uuid not null, fk `auth.users`
+- `amount` numeric(14,2) not null, check `amount > 0`
+- `type` transaction_type not null
+- `category_id` uuid null, fk `categories` on delete set null
+- `description` text null
+- `date` date not null
+- `created_at` timestamptz default now()
+
+**Row Level Security**
+- Both tables: RLS enabled.
+- `transactions`: user may select/insert/update/delete only rows where
+  `user_id = auth.uid()`.
+- `categories`: user may select rows where `user_id = auth.uid()` or
+  `user_id is null`; may insert/update/delete only rows where
+  `user_id = auth.uid()` (global defaults are read-only to users).
+- Default categories seeded in the migration with `user_id = null`.
+
+The migration is delivered as a single SQL file under `supabase/migrations/`,
+run manually in the Supabase SQL editor.
+
+## MVP scope (v1)
+
+Login via magic link · transaction CRUD · categories (default + custom) ·
+dashboard totals (income, expense, current-month balance) · expense-by-category
+chart · date and category filters · transaction history sorted newest first ·
+dark mode.
+
+Explicitly out of scope for v1: multi-currency, budgeting/alerts, PDF/Excel
+export, recurring transactions, shared accounts, automated AI insights.
+
+## Phases
+
+Each phase is one reviewable commit (or a short series). Work happens on `dev`;
+the developer merges and pushes.
+
+### Phase 0 — Project init — DONE
+Scaffold Next.js 16 + TypeScript + Tailwind v4 + ESLint (`src/` dir, `@/*`
+alias). `git init`, initial commit on `main`. `.claude/` and `.env*` gitignored.
+
+### Phase 1 — Supabase wiring
+Install `@supabase/supabase-js` and `@supabase/ssr`. Add:
+- `src/lib/supabase/client.ts` — browser client
+- `src/lib/supabase/server.ts` — server client (Server Components, Route Handlers)
+- `src/middleware.ts` — refresh the auth session on each request
+Document the required env vars (already listed above).
+
+### Phase 2 — Database schema + RLS
+`supabase/migrations/0001_init.sql`: enum, both tables, RLS policies, default
+category seed. Short README note on how to run it.
+
+### Phase 3 — Magic link auth
+- `/login` page: email input, sends the magic link, shows a confirmation state.
+- `/auth/callback` route handler: exchanges the code for a session, redirects to
+  the dashboard.
+- Protected app layout; sign-out action.
+- Manual step for the developer: set the Redirect URL and email template in the
+  Supabase dashboard (instructions provided in this phase).
+
+### Phase 4 — App shell + dark mode
+Mobile-first layout. Bottom navigation sized for thumb reach. `next-themes` for a
+manual light/dark toggle that defaults to the system preference. Theme tokens
+defined in `globals.css` under `@theme`.
+
+### Phase 5 — Transaction CRUD
+Add/edit form (amount, type, category, date, description). Delete. History list
+sorted by date descending. Mutations via Server Actions.
+
+### Phase 6 — Categories
+List defaults plus the user's custom categories. Create/edit/delete for custom
+categories only.
+
+### Phase 7 — Dashboard
+Current-month totals: income, expense, balance.
+
+### Phase 8 — Filters
+Date range (this month / last month / custom range) and category filter applied
+to the history list.
+
+### Phase 9 — Expense chart
+Expense breakdown by category (bar or pie). Charting library chosen at this
+phase to avoid adding a dependency early; candidates: Recharts, unovis.
+
+### Phase 10 — PWA
+Serwist setup: `app/manifest.ts`, `app/sw.ts`, placeholder icons, offline app
+shell. Installable on mobile.
+
+### Phase 11 — Deploy to Vercel
+Configure env vars in Vercel, verify the production build, test PWA install on a
+phone.
+
+## Known risks
+
+1. **Next.js 16 is very new.** Serwist supports it, but service-worker builds can
+   be fragile with Turbopack. If Phase 10 fails, fall back to a webpack build for
+   the service worker. Not a blocker.
+2. **Magic link needs manual dashboard configuration** (Redirect URL, email
+   template). Covered in Phase 3.
+3. **Tailwind v4 has no JS config file.** Contributors following older tutorials
+   will look for `tailwind.config.js`; theme customization is in `globals.css`.
+4. **Charting library not yet pinned** — decided in Phase 9.
