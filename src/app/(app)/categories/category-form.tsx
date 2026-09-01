@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { saveCategory, deleteCategory } from "./actions";
 import { Button } from "@/components/ui/button";
 import { InlineDelete } from "@/components/ui/inline-delete";
@@ -54,16 +55,24 @@ export function CategoryForm({
       type: values.type,
       icon: values.icon === "tag" ? null : values.icon,
     });
-    if (res.error) setServerError(res.error);
-    else onDone();
+    if (res.error) {
+      setServerError(res.error);
+    } else {
+      toast.success(category ? "Kategori diperbarui" : "Kategori ditambahkan");
+      onDone();
+    }
   }
 
   async function onDelete() {
     if (!category) return;
     setServerError("");
     const res = await deleteCategory(category.id);
-    if (res.error) setServerError(res.error);
-    else onDone();
+    if (res.error) {
+      setServerError(res.error);
+    } else {
+      toast.success("Kategori dihapus");
+      onDone();
+    }
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 import { saveTransaction, deleteTransaction } from "./actions";
 import { Button } from "@/components/ui/button";
 import { InlineDelete } from "@/components/ui/inline-delete";
@@ -65,16 +66,24 @@ export function TransactionForm({
       category_id: values.category_id || null,
       description: values.description || null,
     });
-    if (res.error) setServerError(res.error);
-    else onDone();
+    if (res.error) {
+      setServerError(res.error);
+    } else {
+      toast.success(transaction ? "Transaksi diperbarui" : "Transaksi ditambahkan");
+      onDone();
+    }
   }
 
   async function onDelete() {
     if (!transaction) return;
     setServerError("");
     const res = await deleteTransaction(transaction.id);
-    if (res.error) setServerError(res.error);
-    else onDone();
+    if (res.error) {
+      setServerError(res.error);
+    } else {
+      toast.success("Transaksi dihapus");
+      onDone();
+    }
   }
 
   return (

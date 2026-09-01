@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { BottomNav } from "@/components/bottom-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Toaster } from "@/components/toaster";
 
 async function signOut() {
   "use server";
@@ -42,6 +43,7 @@ export default async function AppLayout({
       <main className="mx-auto w-full max-w-md flex-1 p-4">{children}</main>
 
       <BottomNav />
+      <Toaster />
     </div>
   );
 }
