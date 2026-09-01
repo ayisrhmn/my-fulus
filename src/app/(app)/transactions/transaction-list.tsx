@@ -32,6 +32,15 @@ export function TransactionList({
   const sentinel = useRef<HTMLDivElement>(null);
   const { from, to, cat } = filters;
 
+  // Re-seed from the server when it sends fresh data (e.g. after a mutation +
+  // router.refresh()). New prop reference = reset the list to page one.
+  const [seed, setSeed] = useState(initialRows);
+  if (seed !== initialRows) {
+    setSeed(initialRows);
+    setRows(initialRows);
+    setHasMore(initialHasMore);
+  }
+
   useEffect(() => {
     const el = sentinel.current;
     if (!el || !hasMore) return;

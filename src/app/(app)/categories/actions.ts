@@ -41,6 +41,7 @@ export async function saveCategory(
 
   revalidatePath("/categories");
   revalidatePath("/transactions");
+  revalidatePath("/dashboard");
   return {};
 }
 
@@ -63,5 +64,6 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
 
   revalidatePath("/categories");
   revalidatePath("/transactions");
+  revalidatePath("/dashboard");
   return {};
 }

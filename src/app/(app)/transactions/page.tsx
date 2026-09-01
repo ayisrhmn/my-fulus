@@ -77,7 +77,7 @@ export default async function TransactionsPage({
         <TransactionFilters categories={categories} />
       </Suspense>
 
-      <ExpenseByCategory expenses={expenses} />
+      <ExpenseByCategory expenses={expenses} collapsible />
 
       {initialRows.length === 0 ? (
         filtered ? (
