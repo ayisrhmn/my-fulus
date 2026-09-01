@@ -182,14 +182,20 @@ Supabase SQL editor.
   list too.
 - Period is fixed to the current month until Phase 8 adds the selector.
 
-### Phase 8 — Filters
-Date range (this month / last month / custom range) and category filter applied
-to the history list.
+### Phase 8 — Filters — DONE
+- `/transactions` reads `?from&to&cat` search params; default range = current
+  month (`lib/date-range.ts` `monthBounds`).
+- `TransactionFilters` (client): preset chips (Bulan ini / Bulan lalu / Custom),
+  two `DatePicker`s when custom, category `Select` (Semua / Tanpa kategori /
+  each category). Updates the URL via `router.push`.
+- `cat=none` → `.is("category_id", null)`; otherwise `.eq`.
+- Filtered empty state ("Kosong di sini") is distinct from the never-added one.
 
-### Phase 9 — Expense chart
-Expense breakdown by category (bar or pie), including a "Tanpa kategori" bucket
-for null `category_id`. Charting library chosen at this phase to avoid adding a
-dependency early; candidates: Recharts, unovis.
+### Phase 9 — Expense chart — DONE
+- `ExpenseByCategory`: hand-rolled horizontal bar breakdown (no charting
+  dependency) — icon, name, amount, percent, bar scaled to the largest slice.
+  Sorted desc, "Tanpa kategori" bucket for null `category_id`, total in the
+  header. Renders on `/transactions` above the list, driven by the same filters.
 
 ### Phase 10 — PWA
 Serwist setup: `app/manifest.ts`, `app/sw.ts`, placeholder icons, offline app
