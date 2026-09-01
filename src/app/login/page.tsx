@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -35,7 +36,7 @@ export default function LoginPage() {
         <h1 className="text-2xl font-semibold">MyFulus</h1>
 
         {status === "sent" ? (
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm text-text-muted">
             Cek email kamu ya, link buat masuk udah meluncur 🚀
           </p>
         ) : (
@@ -47,19 +48,13 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="email kamu"
-              className="w-full rounded-lg border border-zinc-300 bg-transparent px-4 py-3 text-base outline-none focus:border-zinc-500 dark:border-zinc-700"
+              className="w-full rounded-[var(--radius-sm)] border border-border bg-transparent px-4 py-3 text-base outline-none focus:border-primary"
             />
-            <button
-              type="submit"
-              disabled={status === "sending"}
-              className="w-full rounded-lg bg-foreground py-3 text-base font-medium text-background disabled:opacity-60"
-            >
+            <Button type="submit" disabled={status === "sending"} className="w-full">
               {status === "sending" ? "Lagi ngirim…" : "Kirim magic link"}
-            </button>
+            </Button>
             {status === "error" && (
-              <p className="text-sm text-red-600">
-                Yah, gagal ngirim: {error}
-              </p>
+              <p className="text-sm text-danger">Yah, gagal ngirim: {error}</p>
             )}
           </form>
         )}

@@ -120,12 +120,17 @@ Supabase SQL editor.
   `{{ .ConfirmationURL }}` token. This lives in the dashboard, not the repo
   (repo-managed templates would need the Supabase CLI config, out of scope).
 
-### Phase 4 — App shell + dark mode
-Mobile-first layout. Bottom navigation sized for thumb reach. `next-themes` for a
-manual light/dark toggle that defaults to the system preference. Theme tokens and
-component primitives per `docs/DESIGN.md` (color/radius/shadow tokens in
-`globals.css` `@theme`; `Button`, `Input`, `Card`, `Sheet`, `BottomNav`, `FAB`,
-`AmountText`).
+### Phase 4 — App shell + dark mode — DONE
+- `globals.css`: color/radius tokens per `docs/DESIGN.md`, `.dark` class variant.
+- `next-themes` provider (`defaultTheme="system"`), `ThemeToggle` in the header.
+- Mobile-first `(app)` shell: sticky header (brand, theme toggle, sign out),
+  `max-w-md` main, sticky `BottomNav` (Ringkasan / Transaksi / Kategori) with
+  safe-area inset.
+- Primitives so far: `Button` (primary/ghost/danger), `Card`. `Sheet`, `FAB`,
+  `AmountText` deferred to the phases that first use them.
+- Placeholder pages for `/transactions` and `/categories`; dashboard shows dummy
+  total cards.
+- Login page restyled onto the tokens.
 
 ### Phase 5 — Transaction CRUD
 Add/edit form (amount, type, category, date, description). Delete. History list
