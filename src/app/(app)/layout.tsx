@@ -2,14 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { BottomNav } from "@/components/bottom-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SignOutButton } from "@/components/sign-out-button";
 import { Toaster } from "@/components/toaster";
-
-async function signOut() {
-  "use server";
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  redirect("/login");
-}
 
 export default async function AppLayout({
   children,
@@ -32,11 +26,7 @@ export default async function AppLayout({
         </span>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <form action={signOut}>
-            <button className="px-2 text-sm font-medium text-danger">
-              Keluar
-            </button>
-          </form>
+          <SignOutButton />
         </div>
       </header>
 

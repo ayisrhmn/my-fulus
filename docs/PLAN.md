@@ -229,9 +229,19 @@ Supabase SQL editor.
 - `tsconfig` adds the `webworker` lib; proxy matcher excludes `sw.js` / static
   script + json; eslint ignores the generated `public/sw.js`.
 
-### Phase 11 — Deploy to Vercel
+### Phase 11 — Deploy to Vercel — developer-executed
 Configure env vars in Vercel, verify the production build, test PWA install on a
-phone.
+phone. Steps are in `README.md`. Nothing code-side is blocking.
+
+Pre-deploy polish (done):
+- Removed the scaffold `src/app/favicon.ico` (it shadowed `src/app/icon.png`).
+- Sign-out now opens a confirm bottom `Sheet` (`SignOutButton`) instead of an
+  instant server-action form.
+- SEO: full metadata in the root layout (title template, description, keywords,
+  Open Graph, Twitter, canonical, `metadataBase` from `NEXT_PUBLIC_SITE_URL` /
+  `VERCEL_PROJECT_PRODUCTION_URL`), plus `robots.ts` and `sitemap.ts`.
+- `README.md` rewritten; `CLAUDE.md` / `AGENTS.md` updated with the build/dev
+  and forms conventions.
 
 ## Known risks
 

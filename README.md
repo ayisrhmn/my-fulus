@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MyFulus
 
-## Getting Started
+Personal finance tracker — a mobile-first PWA for logging income and expenses,
+seeing a monthly summary, and breaking spending down by category. Built for
+personal use, but the data model is multi-user ready.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, `src/`, `@/*` alias) + **TypeScript**
+- **Tailwind CSS v4** — theme tokens in `src/app/globals.css` (`@theme`), no JS config
+- **Supabase** — Postgres + Auth (magic link), via `@supabase/ssr`
+- **Serwist** (`@serwist/next`) — service worker / installable PWA
+- Forms: **react-hook-form**, **Radix UI** (Select / Dialog / Popover),
+  **react-day-picker**, **sonner** toasts
+- **Bun** package manager · deploy target **Vercel**
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install
+cp .env.example .env        # then fill in the Supabase values
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env` needs:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Where |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same page (`anon` / `public` key) |
+| `NEXT_PUBLIC_SITE_URL` | optional; your public URL for SEO/OG tags |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Database
 
-## Learn More
+Run `supabase/migrations/0001_init.sql` once in the Supabase SQL editor. It
+creates the `categories` and `transactions` tables, the `transaction_type` enum,
+Row Level Security policies, and seeds the default categories.
 
-To learn more about Next.js, take a look at the following resources:
+### Auth (Supabase dashboard)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Authentication → URL Configuration:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Site URL**: your app URL (e.g. `http://localhost:3077` in dev)
+- **Redirect URLs**: add `<site-url>/auth/callback`
 
-## Deploy on Vercel
+The built-in email sender is rate-limited (~2/hour) and dev-only. For real use,
+configure custom SMTP (e.g. Resend) in the Supabase dashboard.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+bun run dev     # Turbopack dev server on :3077 (service worker disabled)
+bun run build   # production build — runs `next build --webpack`
+bun run start   # serve the production build
+bun run lint
+```
+
+> The build uses `--webpack` because `@serwist/next` v9 is not yet
+> Turbopack-compatible. Dev stays on Turbopack.
+
+## Deploy (Vercel)
+
+1. Import the repo — Bun and Next.js are auto-detected.
+2. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` as
+   environment variables.
+3. Deploy, then add the production `<domain>/auth/callback` to the Supabase
+   Redirect URLs and set the Site URL.
+
+## Docs
+
+- `docs/PLAN.md` — phased implementation plan and status
+- `docs/DESIGN.md` — visual design direction and tokens
