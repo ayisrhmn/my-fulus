@@ -21,19 +21,23 @@ export default async function DashboardPage() {
   const now = new Date();
   const { from, to } = monthRange(now);
 
-  const [{ data: monthRows }, { data: recentRows }] = await Promise.all([
-    supabase
-      .from("transactions")
-      .select("amount, type")
-      .gte("date", from)
-      .lt("date", to),
-    supabase
-      .from("transactions")
-      .select("*, categories(name, icon)")
-      .order("date", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(5),
-  ]);
+  const [{ data: userData }, { data: monthRows }, { data: recentRows }] =
+    await Promise.all([
+      supabase.auth.getUser(),
+      supabase
+        .from("transactions")
+        .select("amount, type")
+        .gte("date", from)
+        .lt("date", to),
+      supabase
+        .from("transactions")
+        .select("*, categories(name, icon)")
+        .order("date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ]);
+
+  const name = userData.user?.email?.split("@")[0] ?? "kamu";
 
   const income = (monthRows ?? [])
     .filter((r) => r.type === "income")
@@ -52,8 +56,10 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-4 pb-24">
       <div>
-        <h1 className="text-xl font-semibold">Ringkasan</h1>
-        <p className="text-[13px] text-text-muted">{monthLabel}</p>
+        <h1 className="text-xl font-semibold">Hi, {name}</h1>
+        <p className="text-[13px] text-text-muted">
+          Ringkasan {monthLabel}
+        </p>
       </div>
 
       <Card className="space-y-1">

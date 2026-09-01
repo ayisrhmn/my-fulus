@@ -8,6 +8,7 @@ export async function getCategories(): Promise<Category[]> {
     .from("categories")
     .select("*")
     .order("type")
+    .order("user_id", { nullsFirst: true }) // defaults before custom
     .order("name");
   return data ?? [];
 }
