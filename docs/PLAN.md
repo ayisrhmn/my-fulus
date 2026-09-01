@@ -122,7 +122,8 @@ Supabase SQL editor.
 
 ### Phase 4 — App shell + dark mode — DONE
 - `globals.css`: color/radius tokens per `docs/DESIGN.md`, `.dark` class variant.
-- `next-themes` provider (`defaultTheme="system"`), `ThemeToggle` in the header.
+- `next-themes` provider, default `light` (system not followed), `ThemeToggle`
+  in the header for manual light/dark.
 - Mobile-first `(app)` shell: sticky header (brand, theme toggle, sign out),
   `max-w-md` main, sticky `BottomNav` (Ringkasan / Transaksi / Kategori) with
   safe-area inset.
