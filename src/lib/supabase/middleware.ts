@@ -1,6 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { authDisabled } from "@/lib/auth-bypass";
 
 // Refreshes the auth session cookie and guards app routes.
 export async function updateSession(request: NextRequest) {
@@ -33,8 +32,6 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isAuthRoute = pathname === "/login" || pathname.startsWith("/auth");
-
-  if (authDisabled) return response;
 
   if (!user && !isAuthRoute) {
     const url = request.nextUrl.clone();

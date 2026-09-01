@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { authDisabled } from "@/lib/auth-bypass";
 import { BottomNav } from "@/components/bottom-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -22,7 +21,7 @@ export default async function AppLayout({
   } = await supabase.auth.getUser();
 
   // Proxy already guards this, but keep the layout self-contained.
-  if (!user && !authDisabled) redirect("/login");
+  if (!user) redirect("/login");
 
   return (
     <div className="flex flex-1 flex-col">
