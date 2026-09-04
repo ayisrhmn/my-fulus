@@ -28,6 +28,16 @@ function ContentSkeleton() {
   );
 }
 
+async function FiltersLoader() {
+  const categories = await getCategories();
+  return <TransactionFilters categories={categories} />;
+}
+
+async function SheetLoader() {
+  const categories = await getCategories();
+  return <TransactionSheet categories={categories} />;
+}
+
 export default async function TransactionsPage({
   searchParams,
 }: {
@@ -41,14 +51,12 @@ export default async function TransactionsPage({
   const filtered = sp.from != null || sp.to != null || cat !== "";
   const filterKey = `${from}|${to}|${cat}`;
 
-  const categories = await getCategories();
-
   return (
     <div className="space-y-4 pb-24">
       <h1 className="text-xl font-semibold">Transaksi</h1>
 
-      <Suspense>
-        <TransactionFilters categories={categories} />
+      <Suspense fallback={<Skeleton className="h-10 w-full" />}>
+        <FiltersLoader />
       </Suspense>
 
       <Suspense key={filterKey} fallback={<ContentSkeleton />}>
@@ -57,7 +65,7 @@ export default async function TransactionsPage({
 
       <Fab basePath="/transactions" label="Tambah" />
       <Suspense>
-        <TransactionSheet categories={categories} />
+        <SheetLoader />
       </Suspense>
     </div>
   );
