@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { SheetLink } from "@/components/sheet-link";
 import { Card } from "@/components/ui/card";
 import { AmountText } from "@/components/ui/amount-text";
 import { CategoryIcon } from "@/components/category-icon";
@@ -20,7 +20,7 @@ export function TransactionRow({
     : tx.description;
 
   return (
-    <Link href={`/transactions?sheet=${tx.id}`} scroll={false}>
+    <SheetLink basePath="/transactions" sheet={tx.id}>
       <Card className="flex items-center gap-3">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border-[length:var(--border-w)] border-border bg-surface-2">
           <CategoryIcon name={tx.categories?.icon ?? null} className="size-4" />
@@ -36,6 +36,6 @@ export function TransactionRow({
         <AmountText amount={tx.amount} type={tx.type} />
         <ChevronRight className="size-4 shrink-0 text-text-muted" />
       </Card>
-    </Link>
+    </SheetLink>
   );
 }

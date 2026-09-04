@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { ReceiptText, SearchX } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCategories } from "@/lib/queries";
@@ -7,6 +6,7 @@ import { monthBounds } from "@/lib/date-range";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
+import { SheetLink } from "@/components/sheet-link";
 import { ExpenseByCategory, type ExpenseRow } from "@/components/expense-by-category";
 import { TransactionFilters } from "./transaction-filters";
 import { TransactionList } from "./transaction-list";
@@ -92,9 +92,9 @@ export default async function TransactionsPage({
             title="Dompet masih adem"
             description="Belum ada transaksi tercatat. Mulai dari yang pertama, yuk."
             action={
-              <Link href="/transactions?sheet=new" scroll={false}>
+              <SheetLink basePath="/transactions" sheet="new">
                 <Button>Tambah transaksi</Button>
-              </Link>
+              </SheetLink>
             }
           />
         )
@@ -107,7 +107,7 @@ export default async function TransactionsPage({
         />
       )}
 
-      <Fab href="/transactions?sheet=new" label="Tambah" />
+      <Fab basePath="/transactions" label="Tambah" />
       <Suspense>
         <TransactionSheet categories={categories} />
       </Suspense>

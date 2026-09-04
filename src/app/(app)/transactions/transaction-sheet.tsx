@@ -47,7 +47,7 @@ export function TransactionSheet({ categories }: { categories: Category[] }) {
   const open = sheet != null;
 
   function close() {
-    router.replace("/transactions");
+    window.history.replaceState(null, "", "/transactions");
   }
   function done() {
     close();
