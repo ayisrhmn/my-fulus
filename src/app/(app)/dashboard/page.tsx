@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TransactionRow } from "@/components/transaction-row";
+import { SheetLink } from "@/components/sheet-link";
 import {
   ExpenseByCategory,
   type ExpenseRow,
@@ -120,9 +121,9 @@ export default async function DashboardPage() {
           title="Belum ada apa-apa"
           description="Catat transaksi pertama biar ringkasan ini mulai hidup."
           action={
-            <Link href="/transactions?sheet=new" scroll={false}>
+            <SheetLink basePath="/transactions" sheet="new">
               <Button>Tambah transaksi</Button>
-            </Link>
+            </SheetLink>
           }
         />
       ) : (

@@ -17,7 +17,7 @@ export function CategorySheet({ categories }: { categories: Category[] }) {
       : undefined;
 
   function close() {
-    router.replace("/categories");
+    window.history.replaceState(null, "", "/categories");
   }
 
   return (

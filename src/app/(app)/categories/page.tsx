@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { ChevronRight, Lock, Tags } from "lucide-react";
 import { getCategories } from "@/lib/queries";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
 import { CategoryIcon } from "@/components/category-icon";
+import { SheetLink } from "@/components/sheet-link";
 import { CategorySheet } from "./category-sheet";
 import type { Category } from "@/lib/types";
 
@@ -28,9 +28,14 @@ function Group({ title, items }: { title: string; items: Category[] }) {
           </Card>
         );
         return custom ? (
-          <Link key={c.id} href={`/categories?sheet=${c.id}`} scroll={false}>
+          <SheetLink
+            key={c.id}
+            basePath="/categories"
+            sheet={c.id}
+            className="block"
+          >
             {row}
-          </Link>
+          </SheetLink>
         ) : (
           <div key={c.id}>{row}</div>
         );
@@ -54,9 +59,9 @@ export default async function CategoriesPage() {
           title="Kategori masih kosong"
           description="Belum ada kategori sama sekali. Bikin satu buat mulai milah transaksi."
           action={
-            <Link href="/categories?sheet=new" scroll={false}>
+            <SheetLink basePath="/categories" sheet="new">
               <Button>Tambah kategori</Button>
-            </Link>
+            </SheetLink>
           }
         />
       ) : (
@@ -66,7 +71,7 @@ export default async function CategoriesPage() {
         </>
       )}
 
-      <Fab href="/categories?sheet=new" label="Tambah" />
+      <Fab basePath="/categories" label="Tambah" />
       <Suspense>
         <CategorySheet categories={categories} />
       </Suspense>
