@@ -1,7 +1,17 @@
 import "server-only";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+const GMAIL_USER = process.env.GMAIL_USER!;
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD!,
+  },
+});
 
 // MyFulus "warm retro" palette (see src/app/globals.css). Email clients don't
 // support CSS variables, so every value here is a literal and every style is
@@ -105,12 +115,11 @@ Dikirim otomatis oleh MyFulus. Tombol balas nggak dipantau.
 
 export async function sendLoginCode(email: string, code: string): Promise<void> {
   const { html, text } = renderLoginCodeEmail(code);
-  const { error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM!,
+  await transporter.sendMail({
+    from: `MyFulus <${GMAIL_USER}>`,
     to: email,
     subject: `Kode masuk MyFulus: ${code}`,
     html,
     text,
   });
-  if (error) throw new Error(error.message);
 }

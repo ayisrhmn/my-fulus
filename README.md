@@ -8,7 +8,10 @@ personal use, but the data model is multi-user ready.
 
 - **Next.js 16** (App Router, `src/`, `@/*` alias) + **TypeScript**
 - **Tailwind CSS v4** — theme tokens in `src/app/globals.css` (`@theme`), no JS config
-- **Supabase** — Postgres + Auth (magic link), via `@supabase/ssr`
+- **Supabase** — Postgres only (no Supabase Auth), server-side access with the
+  service-role key
+- **Auth** — custom 6-digit email code, Gmail SMTP via `nodemailer`, `jose` JWT
+  session cookie
 - **Serwist** (`@serwist/next`) — service worker / installable PWA
 - Forms: **react-hook-form**, **Radix UI** (Select / Dialog / Popover),
   **react-day-picker**, **sonner** toasts
@@ -18,7 +21,7 @@ personal use, but the data model is multi-user ready.
 
 ```bash
 bun install
-cp .env.example .env        # then fill in the Supabase values
+cp .env.example .env        # then fill in the values below
 ```
 
 `.env` needs:
@@ -27,23 +30,29 @@ cp .env.example .env        # then fill in the Supabase values
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same page (`anon` / `public` key) |
+| `SUPABASE_SERVICE_ROLE_KEY` | same page (`service_role` key — server-only, keep secret) |
+| `GMAIL_USER` | the Gmail address that sends login codes |
+| `GMAIL_APP_PASSWORD` | Google Account → Security → App passwords (needs 2FA on) |
+| `AUTH_SECRET` | random 32+ byte string, e.g. `openssl rand -base64 32` |
 | `NEXT_PUBLIC_SITE_URL` | optional; your public URL for SEO/OG tags |
 
 ### Database
 
-Run `supabase/migrations/0001_init.sql` once in the Supabase SQL editor. It
-creates the `categories` and `transactions` tables, the `transaction_type` enum,
-Row Level Security policies, and seeds the default categories.
+Run these once in the Supabase SQL editor, in order:
 
-### Auth (Supabase dashboard)
+1. `supabase/migrations/0001_init.sql` — `categories` / `transactions` tables,
+   the `transaction_type` enum, RLS policies, and the default categories.
+2. `supabase/migrations/0002_custom_auth.sql` — `public.users` and
+   `public.login_codes`, re-points the `user_id` FKs off `auth.users`, and drops
+   the `auth.uid()` RLS policies. Non-destructive; verification queries are in
+   the file's trailing comment.
 
-Authentication → URL Configuration:
+### Auth
 
-- **Site URL**: your app URL (e.g. `http://localhost:3077` in dev)
-- **Redirect URLs**: add `<site-url>/auth/callback`
-
-The built-in email sender is rate-limited (~2/hour) and dev-only. For real use,
-configure custom SMTP (e.g. Resend) in the Supabase dashboard.
+Login is a 6-digit code emailed through Gmail SMTP — no Supabase Auth, no
+dashboard configuration. Set `GMAIL_USER` / `GMAIL_APP_PASSWORD` (App Password,
+Google 2FA required) and `AUTH_SECRET`. Gmail SMTP sends to any address at
+~500 mails/day; past that, switch to a real ESP on a paid domain.
 
 ## Scripts
 

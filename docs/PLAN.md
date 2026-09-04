@@ -135,14 +135,14 @@ Supabase Auth's default SMTP caps at ~3 emails/hour, which the magic-link flow
 hit almost immediately. Replaced Supabase Auth entirely; Supabase is now just a
 Postgres store.
 
-- Deps: `resend`, `jose`. Removed `@supabase/ssr`.
+- Deps: `nodemailer`, `jose`. Removed `@supabase/ssr`.
 - `src/lib/supabase/admin.ts` — service-role client, server-only, bypasses RLS.
 - `src/lib/auth/token.ts` — `jose` HS256 sign/verify (`AUTH_SECRET`), edge-safe
   for `proxy.ts`. `src/lib/auth/session.ts` — `server-only` cookie helpers
   (`getCurrentUser`, `requireUser`, `createSession`, `destroySession`), 7-day
   `session` cookie. `src/lib/auth/codes.ts` — HMAC-hashed 6-digit codes in
   `public.login_codes`, 10-min TTL, 60s resend cooldown, 5 attempts.
-  `src/lib/email.ts` — Resend sender.
+  `src/lib/email.ts` — Gmail SMTP sender (`nodemailer`, branded HTML + text).
 - `POST /api/auth/request-code`, `POST /api/auth/verify`. `signOut` action now
   clears the cookie.
 - `proxy.ts` verifies the JWT instead of a Supabase session.
@@ -158,9 +158,12 @@ Postgres store.
 - New-user signup works end to end: `request-code` accepts any email,
   `verifyLoginCode` inserts a fresh `public.users` row, and global categories
   (`user_id is null`) show for everyone.
-- Env: `RESEND_API_KEY`, `EMAIL_FROM`, `AUTH_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`.
-- Dev uses `onboarding@resend.dev` as the sender (only delivers to addresses
-  registered on the Resend account). Production needs a verified domain.
+- Env: `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `AUTH_SECRET`,
+  `SUPABASE_SERVICE_ROLE_KEY`.
+- Email goes through Gmail SMTP (`smtp.gmail.com:465`) with a Google App
+  Password (account needs 2FA on). Sends to any recipient, ~500/day. Resend was
+  tried first but its test domain `onboarding@resend.dev` only delivers to the
+  account owner's own address, and a verified domain needs a paid domain name.
 
 ### Phase 4 — App shell + dark mode — DONE
 - `globals.css`: color/radius tokens per `docs/DESIGN.md`, `.dark` class variant.
@@ -274,8 +277,8 @@ Pre-deploy polish (done):
    be fragile with Turbopack. If Phase 10 fails, fall back to a webpack build for
    the service worker. Not a blocker.
 2. ~~Magic link needs manual dashboard configuration.~~ Resolved in Phase 12 —
-   Supabase Auth dropped for custom email-code login. Production still needs a
-   verified Resend sending domain.
+   Supabase Auth dropped for custom email-code login over Gmail SMTP. Gmail's
+   ~500/day cap is the ceiling; move to a paid domain + real ESP if it's hit.
 3. **Tailwind v4 has no JS config file.** Contributors following older tutorials
    will look for `tailwind.config.js`; theme customization is in `globals.css`.
 4. **Charting library not yet pinned** — decided in Phase 9.
