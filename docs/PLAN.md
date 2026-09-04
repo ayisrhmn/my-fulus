@@ -149,9 +149,15 @@ Postgres store.
 - Every server-side query switched to the admin client with an explicit
   `.eq("user_id", …)` filter (`queries.ts`, dashboard, transaction-content, both
   `actions.ts`). `getCategories(userId)` takes the id as an argument.
-- DB migration (manual, non-destructive): create `public.users` with ids copied
-  from `auth.users`, and `public.login_codes`. `auth.users` and the RLS policies
-  on `transactions` / `categories` are left in place as a rollback safety net.
+- DB migration (manual, `supabase/migrations/0002_custom_auth.sql`): create
+  `public.users` (ids copied from `auth.users`, `gen_random_uuid()` default for
+  new signups) and `public.login_codes`; re-point the `transactions` /
+  `categories` `user_id` FKs from `auth.users` to `public.users`; drop the
+  `auth.uid()` RLS policies (RLS stays enabled with no policies — service-role
+  bypasses it). Row data is never deleted. `auth.users` is now unused.
+- New-user signup works end to end: `request-code` accepts any email,
+  `verifyLoginCode` inserts a fresh `public.users` row, and global categories
+  (`user_id is null`) show for everyone.
 - Env: `RESEND_API_KEY`, `EMAIL_FROM`, `AUTH_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`.
 - Dev uses `onboarding@resend.dev` as the sender (only delivers to addresses
   registered on the Resend account). Production needs a verified domain.
