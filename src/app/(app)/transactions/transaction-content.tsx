@@ -1,5 +1,7 @@
 import { ReceiptText, SearchX } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentUser } from "@/lib/auth/session";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SheetLink } from "@/components/sheet-link";
@@ -19,19 +21,23 @@ export async function TransactionContent({
   cat: string;
   filtered: boolean;
 }) {
-  const supabase = await createClient();
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  const db = createAdminClient();
 
-  let listQuery = supabase
+  let listQuery = db
     .from("transactions")
     .select("*, categories(name, icon)")
+    .eq("user_id", user.id)
     .gte("date", from)
     .lte("date", to)
     .order("date", { ascending: false })
     .order("created_at", { ascending: false })
     .range(0, PAGE_SIZE - 1);
-  let expenseQuery = supabase
+  let expenseQuery = db
     .from("transactions")
     .select("amount, category_id, categories(name, icon)")
+    .eq("user_id", user.id)
     .eq("type", "expense")
     .gte("date", from)
     .lte("date", to);

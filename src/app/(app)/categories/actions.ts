@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentUser } from "@/lib/auth/session";
 import type { TransactionType } from "@/lib/types";
 
 export type CategoryInput = {
@@ -16,10 +17,7 @@ export type ActionResult = { error?: string };
 export async function saveCategory(
   input: CategoryInput,
 ): Promise<ActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return { error: "Kamu belum login." };
 
   const name = input.name.trim();
@@ -27,15 +25,16 @@ export async function saveCategory(
   if (input.type !== "income" && input.type !== "expense")
     return { error: "Tipe kategori nggak valid." };
 
+  const db = createAdminClient();
   const row = { user_id: user.id, name, type: input.type, icon: input.icon || null };
 
   const { error } = input.id
-    ? await supabase
+    ? await db
         .from("categories")
         .update(row)
         .eq("id", input.id)
-        .eq("user_id", user.id) // never touch global defaults
-    : await supabase.from("categories").insert(row);
+        .eq("user_id", user.id) // never touch global defaults or others' rows
+    : await db.from("categories").insert(row);
 
   if (error) return { error: error.message };
 
@@ -48,13 +47,11 @@ export async function saveCategory(
 export async function deleteCategory(id: string): Promise<ActionResult> {
   if (!id) return { error: "Kategori nggak ketemu." };
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return { error: "Kamu belum login." };
 
-  const { error } = await supabase
+  const db = createAdminClient();
+  const { error } = await db
     .from("categories")
     .delete()
     .eq("id", id)

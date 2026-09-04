@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentUser } from "@/lib/auth/session";
 import type { TransactionType, TransactionWithCategory } from "@/lib/types";
 import { PAGE_SIZE, type TransactionFilters } from "./constants";
 
@@ -19,10 +20,7 @@ export type ActionResult = { error?: string };
 export async function saveTransaction(
   input: TransactionInput,
 ): Promise<ActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return { error: "Kamu belum login." };
 
   if (!Number.isFinite(input.amount) || input.amount <= 0)
@@ -31,6 +29,7 @@ export async function saveTransaction(
     return { error: "Tipe transaksi nggak valid." };
   if (!input.date) return { error: "Tanggal wajib diisi." };
 
+  const db = createAdminClient();
   const row = {
     user_id: user.id,
     amount: input.amount,
@@ -41,8 +40,12 @@ export async function saveTransaction(
   };
 
   const { error } = input.id
-    ? await supabase.from("transactions").update(row).eq("id", input.id)
-    : await supabase.from("transactions").insert(row);
+    ? await db
+        .from("transactions")
+        .update(row)
+        .eq("id", input.id)
+        .eq("user_id", user.id)
+    : await db.from("transactions").insert(row);
 
   if (error) return { error: error.message };
 
@@ -54,8 +57,15 @@ export async function saveTransaction(
 export async function deleteTransaction(id: string): Promise<ActionResult> {
   if (!id) return { error: "Transaksi nggak ketemu." };
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("transactions").delete().eq("id", id);
+  const user = await getCurrentUser();
+  if (!user) return { error: "Kamu belum login." };
+
+  const db = createAdminClient();
+  const { error } = await db
+    .from("transactions")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
   if (error) return { error: error.message };
 
   revalidatePath("/transactions");
@@ -66,11 +76,15 @@ export async function deleteTransaction(id: string): Promise<ActionResult> {
 export async function getTransaction(
   id: string,
 ): Promise<TransactionWithCategory | null> {
-  const supabase = await createClient();
-  const { data } = await supabase
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  const db = createAdminClient();
+  const { data } = await db
     .from("transactions")
     .select("*, categories(name, icon)")
     .eq("id", id)
+    .eq("user_id", user.id)
     .single();
   return (data as TransactionWithCategory) ?? null;
 }
@@ -79,10 +93,14 @@ export async function loadMoreTransactions(
   filters: TransactionFilters,
   offset: number,
 ): Promise<TransactionWithCategory[]> {
-  const supabase = await createClient();
-  let q = supabase
+  const user = await getCurrentUser();
+  if (!user) return [];
+
+  const db = createAdminClient();
+  let q = db
     .from("transactions")
     .select("*, categories(name, icon)")
+    .eq("user_id", user.id)
     .gte("date", filters.from)
     .lte("date", filters.to)
     .order("date", { ascending: false })

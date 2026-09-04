@@ -1,5 +1,7 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { getCategories } from "@/lib/queries";
+import { getCurrentUser } from "@/lib/auth/session";
 import { monthBounds } from "@/lib/date-range";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Fab } from "@/components/ui/fab";
@@ -29,12 +31,16 @@ function ContentSkeleton() {
 }
 
 async function FiltersLoader() {
-  const categories = await getCategories();
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  const categories = await getCategories(user.id);
   return <TransactionFilters categories={categories} />;
 }
 
 async function SheetLoader() {
-  const categories = await getCategories();
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  const categories = await getCategories(user.id);
   return <TransactionSheet categories={categories} />;
 }
 
