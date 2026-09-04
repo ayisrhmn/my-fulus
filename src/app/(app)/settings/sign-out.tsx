@@ -16,6 +16,7 @@ export function SignOut() {
       <SettingsRow
         icon={LogOut}
         label="Keluar"
+        danger
         onClick={() => setOpen(true)}
       />
 

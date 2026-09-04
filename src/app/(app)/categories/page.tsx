@@ -1,6 +1,8 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { ChevronRight, Lock, Tags } from "lucide-react";
 import { getCategories } from "@/lib/queries";
+import { getCurrentUser } from "@/lib/auth/session";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -45,7 +47,9 @@ function Group({ title, items }: { title: string; items: Category[] }) {
 }
 
 export default async function CategoriesPage() {
-  const categories = await getCategories();
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  const categories = await getCategories(user.id);
   const income = categories.filter((c) => c.type === "income");
   const expense = categories.filter((c) => c.type === "expense");
 

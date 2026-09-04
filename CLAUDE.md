@@ -30,9 +30,24 @@ No emoji in the UI or in seed data. Use `lucide-react` for every icon. Category
 ## Stack
 
 Next.js 16 (App Router, `src/`, `@/*` alias) · TypeScript · Tailwind CSS v4
-(tokens in `src/app/globals.css` via `@theme`, no JS config) · Supabase (Postgres
-+ Auth magic link, `@supabase/ssr`; `src/proxy.ts` = Next 16's renamed
+(tokens in `src/app/globals.css` via `@theme`, no JS config) · Supabase as a
+plain Postgres store, accessed server-only with the service-role key
+(`src/lib/supabase/admin.ts`) — no Supabase Auth, no RLS, so every query must
+filter `user_id` itself · custom email-code auth (Gmail SMTP via `nodemailer` +
+`jose` JWT session cookie, `src/lib/auth/`; `src/proxy.ts` = Next 16's renamed
 middleware) · Serwist PWA (`src/app/sw.ts`, `manifest.ts`) · `next-themes`.
+
+## Auth
+
+Login is a 6-digit code emailed via Gmail SMTP (`nodemailer`, `src/lib/email.ts`),
+not Supabase Auth (its default SMTP rate limit was too low). Flow:
+`POST /api/auth/request-code` stores a hashed code in `public.login_codes`;
+`POST /api/auth/verify` checks it, upserts `public.users`, and sets a
+`jose`-signed `session` cookie (HS256, `AUTH_SECRET`, 7-day expiry).
+`src/lib/auth/token.ts` is edge-safe for `proxy.ts`; `src/lib/auth/session.ts`
+(`getCurrentUser` / `requireUser`) is server-only.
+Env: `GMAIL_USER`, `GMAIL_APP_PASSWORD` (Google account App Password, 2FA on),
+`AUTH_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`. Gmail SMTP caps at ~500 mails/day.
 
 ## Forms & UI conventions
 

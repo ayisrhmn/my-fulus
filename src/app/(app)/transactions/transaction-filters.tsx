@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Select } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -15,13 +16,28 @@ const presets: { key: RangePreset; label: string }[] = [
 export function TransactionFilters({ categories }: { categories: Category[] }) {
   const router = useRouter();
   const params = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+
+  // Optimistic selection so chips/select react on click, before the server
+  // round-trip that a router.push soft navigation costs.
+  const [pending, setPending] = useState<{ preset?: RangePreset; cat?: string }>(
+    {},
+  );
+  // Drop the optimistic overlay once the URL catches up (adjust-on-render).
+  const paramsKey = params.toString();
+  const [seenKey, setSeenKey] = useState(paramsKey);
+  if (seenKey !== paramsKey) {
+    setSeenKey(paramsKey);
+    setPending({});
+  }
 
   const def = monthBounds(0);
   const from = params.get("from") ?? def.from;
   const to = params.get("to") ?? def.to;
-  const cat = params.get("cat") ?? "";
+  const cat = pending.cat ?? params.get("cat") ?? "";
   const preset: RangePreset =
-    params.get("range") === "custom" ? "custom" : detectPreset(from, to);
+    pending.preset ??
+    (params.get("range") === "custom" ? "custom" : detectPreset(from, to));
   const dirty =
     params.has("from") ||
     params.has("to") ||
@@ -34,10 +50,11 @@ export function TransactionFilters({ categories }: { categories: Category[] }) {
       if (v == null || v === "") p.delete(k);
       else p.set(k, v);
     }
-    router.push(`/transactions?${p.toString()}`, { scroll: false });
+    startTransition(() => router.push(`/transactions?${p.toString()}`, { scroll: false }));
   }
 
   function pickPreset(key: RangePreset) {
+    setPending((s) => ({ ...s, preset: key }));
     if (key === "this") apply({ from: null, to: null, range: null });
     else if (key === "last") apply({ ...monthBounds(-1), range: null });
     else apply({ range: "custom", from, to }); // keep current dates, show pickers
@@ -50,7 +67,10 @@ export function TransactionFilters({ categories }: { categories: Category[] }) {
   ];
 
   return (
-    <div className="space-y-3">
+    <div
+      className={`space-y-3 transition-opacity ${isPending ? "opacity-60" : ""}`}
+      aria-busy={isPending}
+    >
       <div className="flex flex-wrap gap-2">
         {presets.map((p) => (
           <button
@@ -65,7 +85,12 @@ export function TransactionFilters({ categories }: { categories: Category[] }) {
         ))}
         {dirty && (
           <button
-            onClick={() => router.push("/transactions", { scroll: false })}
+            onClick={() => {
+              setPending({ preset: "this", cat: "" });
+              startTransition(() =>
+                router.push("/transactions", { scroll: false }),
+              );
+            }}
             className="rounded-full border-[length:var(--border-w)] border-border bg-surface px-3 py-1.5 text-[13px] font-medium text-text-muted"
           >
             Reset
@@ -89,7 +114,10 @@ export function TransactionFilters({ categories }: { categories: Category[] }) {
       <Select
         ariaLabel="Filter kategori"
         value={cat}
-        onValueChange={(v) => apply({ cat: v })}
+        onValueChange={(v) => {
+          setPending((s) => ({ ...s, cat: v }));
+          apply({ cat: v });
+        }}
         options={catOptions}
       />
     </div>

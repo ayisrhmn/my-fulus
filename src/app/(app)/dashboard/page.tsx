@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { PiggyBank } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentUser } from "@/lib/auth/session";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -22,37 +24,37 @@ function monthRange(now = new Date()) {
 }
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  const db = createAdminClient();
   const now = new Date();
   const { from, to } = monthRange(now);
 
-  const [
-    { data: userData },
-    { data: monthRows },
-    { data: recentRows },
-    { data: expenseRows },
-  ] = await Promise.all([
-    supabase.auth.getUser(),
-    supabase
-      .from("transactions")
-      .select("amount, type")
-      .gte("date", from)
-      .lt("date", to),
-    supabase
-      .from("transactions")
-      .select("*, categories(name, icon)")
-      .order("date", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(5),
-    supabase
-      .from("transactions")
-      .select("amount, category_id, categories(name, icon)")
-      .eq("type", "expense")
-      .gte("date", from)
-      .lt("date", to),
-  ]);
+  const [{ data: monthRows }, { data: recentRows }, { data: expenseRows }] =
+    await Promise.all([
+      db
+        .from("transactions")
+        .select("amount, type")
+        .eq("user_id", user.id)
+        .gte("date", from)
+        .lt("date", to),
+      db
+        .from("transactions")
+        .select("*, categories(name, icon)")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(5),
+      db
+        .from("transactions")
+        .select("amount, category_id, categories(name, icon)")
+        .eq("user_id", user.id)
+        .eq("type", "expense")
+        .gte("date", from)
+        .lt("date", to),
+    ]);
 
-  const name = userData.user?.email?.split("@")[0] ?? "kamu";
+  const name = user?.email?.split("@")[0] ?? "kamu";
 
   const income = (monthRows ?? [])
     .filter((r) => r.type === "income")
