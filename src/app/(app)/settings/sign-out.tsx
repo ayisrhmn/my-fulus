@@ -1,22 +1,23 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { LogOut } from "lucide-react";
 import { signOut } from "@/app/(app)/actions";
 import { Sheet } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { SettingsRow } from "./settings-row";
 
-export function SignOutButton() {
+export function SignOut() {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
   return (
     <>
-      <button
+      <SettingsRow
+        icon={LogOut}
+        label="Keluar"
         onClick={() => setOpen(true)}
-        className="px-2 text-sm font-medium text-danger"
-      >
-        Keluar
-      </button>
+      />
 
       <Sheet open={open} onOpenChange={setOpen} title="Keluar dari MyFulus?">
         <div className="space-y-4">

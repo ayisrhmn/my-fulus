@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BottomNav } from "@/components/bottom-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { SignOutButton } from "@/components/sign-out-button";
 import { Toaster } from "@/components/toaster";
 
 export default async function AppLayout({
@@ -26,7 +27,13 @@ export default async function AppLayout({
         </span>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <SignOutButton />
+          <Link
+            href="/settings"
+            aria-label="Pengaturan"
+            className="flex size-9 items-center justify-center rounded-full text-text-muted hover:bg-surface-2"
+          >
+            <Settings className="size-[18px]" />
+          </Link>
         </div>
       </header>
 
