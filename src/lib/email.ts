@@ -115,11 +115,16 @@ Dikirim otomatis oleh MyFulus. Tombol balas nggak dipantau.
 
 export async function sendLoginCode(email: string, code: string): Promise<void> {
   const { html, text } = renderLoginCodeEmail(code);
-  await transporter.sendMail({
-    from: `MyFulus <${GMAIL_USER}>`,
-    to: email,
-    subject: `Kode masuk MyFulus: ${code}`,
-    html,
-    text,
-  });
+  try {
+    await transporter.sendMail({
+      from: `MyFulus <${GMAIL_USER}>`,
+      to: email,
+      subject: `Kode masuk MyFulus: ${code}`,
+      html,
+      text,
+    });
+  } catch (err) {
+    console.error("[email] Gmail SMTP send failed:", err);
+    throw err;
+  }
 }

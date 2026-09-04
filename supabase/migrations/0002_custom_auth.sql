@@ -17,6 +17,10 @@ create table if not exists public.users (
   created_at timestamptz not null default now()
 );
 
+-- Idempotent: fixes an earlier revision of this file that created the table
+-- without a default, which broke new-user signup (null id on insert).
+alter table public.users alter column id set default gen_random_uuid();
+
 insert into public.users (id, email, created_at)
 select id, email, created_at
 from auth.users

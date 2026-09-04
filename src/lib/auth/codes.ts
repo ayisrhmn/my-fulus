@@ -51,7 +51,7 @@ export async function issueLoginCode(email: string): Promise<IssueResult> {
 
 export type VerifyResult =
   | { ok: true; userId: string; email: string }
-  | { ok: false; reason: "invalid" | "expired" | "locked" };
+  | { ok: false; reason: "invalid" | "expired" | "locked" | "server" };
 
 // Checks `code` against the latest code for `email`. On success the code is
 // consumed and the matching `public.users` row is returned (created if new).
@@ -107,6 +107,9 @@ export async function verifyLoginCode(
     .select("id, email")
     .single();
 
-  if (error || !created) return { ok: false, reason: "invalid" };
+  if (error || !created) {
+    console.error("[auth] failed to create user", { email, error });
+    return { ok: false, reason: "server" };
+  }
   return { ok: true, userId: created.id, email: created.email };
 }

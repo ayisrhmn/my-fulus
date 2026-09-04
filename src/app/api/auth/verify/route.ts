@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { verifyLoginCode } from "@/lib/auth/codes";
 import { createSession } from "@/lib/auth/session";
 
-const MESSAGES: Record<"invalid" | "expired" | "locked", string> = {
+const MESSAGES: Record<"invalid" | "expired" | "locked" | "server", string> = {
   invalid: "Kode salah. Coba cek lagi.",
   expired: "Kodenya udah kadaluarsa. Minta kode baru ya.",
   locked: "Kebanyakan salah. Minta kode baru ya.",
+  server: "Ada masalah di server. Coba lagi bentar ya.",
 };
 
 export async function POST(request: Request) {
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
   if (!result.ok) {
     return NextResponse.json(
       { error: MESSAGES[result.reason] },
-      { status: 400 },
+      { status: result.reason === "server" ? 500 : 400 },
     );
   }
 
