@@ -24,7 +24,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Kode harus 6 digit." }, { status: 400 });
   }
 
-  const result = await verifyLoginCode(email, code);
+  let result: Awaited<ReturnType<typeof verifyLoginCode>>;
+  try {
+    result = await verifyLoginCode(email, code);
+  } catch (err) {
+    console.error("[auth] failed to verify login code", err);
+    result = { ok: false, reason: "server" };
+  }
   if (!result.ok) {
     return NextResponse.json(
       { error: MESSAGES[result.reason] },

@@ -1,6 +1,11 @@
 import { ReceiptText, SearchX } from "lucide-react";
 import { redirect } from "next/navigation";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { sql } from "@/lib/db";
+import {
+  categoryFilter,
+  expenseColumns,
+  transactionColumns,
+} from "@/lib/queries";
 import { getCurrentUser } from "@/lib/auth/session";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -23,40 +28,25 @@ export async function TransactionContent({
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const db = createAdminClient();
-
-  let listQuery = db
-    .from("transactions")
-    .select("*, categories(name, icon)")
-    .eq("user_id", user.id)
-    .gte("date", from)
-    .lte("date", to)
-    .order("date", { ascending: false })
-    .order("created_at", { ascending: false })
-    .range(0, PAGE_SIZE - 1);
-  let expenseQuery = db
-    .from("transactions")
-    .select("amount, category_id, categories(name, icon)")
-    .eq("user_id", user.id)
-    .eq("type", "expense")
-    .gte("date", from)
-    .lte("date", to);
-
-  if (cat === "none") {
-    listQuery = listQuery.is("category_id", null);
-    expenseQuery = expenseQuery.is("category_id", null);
-  } else if (cat) {
-    listQuery = listQuery.eq("category_id", cat);
-    expenseQuery = expenseQuery.eq("category_id", cat);
-  }
-
-  const [{ data: rows }, { data: expenseRows }] = await Promise.all([
-    listQuery,
-    expenseQuery,
+  const [initialRows, expenses] = await Promise.all([
+    sql<TransactionWithCategory[]>`
+      select ${transactionColumns()}
+      from transactions t
+      left join categories c on c.id = t.category_id
+      where t.user_id = ${user.id} and t.date >= ${from} and t.date <= ${to}
+        ${categoryFilter(cat)}
+      order by t.date desc, t.created_at desc
+      limit ${PAGE_SIZE}
+    `,
+    sql<ExpenseRow[]>`
+      select ${expenseColumns()}
+      from transactions t
+      left join categories c on c.id = t.category_id
+      where t.user_id = ${user.id} and t.type = 'expense'
+        and t.date >= ${from} and t.date <= ${to}
+        ${categoryFilter(cat)}
+    `,
   ]);
-
-  const initialRows = (rows ?? []) as TransactionWithCategory[];
-  const expenses = (expenseRows ?? []) as unknown as ExpenseRow[];
 
   return (
     <>

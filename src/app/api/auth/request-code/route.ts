@@ -21,7 +21,16 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await issueLoginCode(email);
+  let result: Awaited<ReturnType<typeof issueLoginCode>>;
+  try {
+    result = await issueLoginCode(email);
+  } catch (err) {
+    console.error("[auth] failed to issue login code", err);
+    return NextResponse.json(
+      { error: "Ada masalah di server. Coba lagi bentar ya." },
+      { status: 500 },
+    );
+  }
   if ("cooldown" in result) {
     return NextResponse.json(
       { error: `Sabar ya, coba lagi ${result.cooldown} detik lagi.` },

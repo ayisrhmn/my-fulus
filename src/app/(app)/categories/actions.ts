@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { sql } from "@/lib/db";
+import { isUuid } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/auth/session";
 import type { TransactionType } from "@/lib/types";
 
@@ -25,18 +26,24 @@ export async function saveCategory(
   if (input.type !== "income" && input.type !== "expense")
     return { error: "Tipe kategori nggak valid." };
 
-  const db = createAdminClient();
+  if (input.id && !isUuid(input.id)) return { error: "Kategori nggak ketemu." };
+
   const row = { user_id: user.id, name, type: input.type, icon: input.icon || null };
 
-  const { error } = input.id
-    ? await db
-        .from("categories")
-        .update(row)
-        .eq("id", input.id)
-        .eq("user_id", user.id) // never touch global defaults or others' rows
-    : await db.from("categories").insert(row);
-
-  if (error) return { error: error.message };
+  try {
+    if (input.id) {
+      // Scoped by user_id: never touch global defaults or others' rows.
+      await sql`
+        update categories set ${sql(row)}
+        where id = ${input.id} and user_id = ${user.id}
+      `;
+    } else {
+      await sql`insert into categories ${sql(row)}`;
+    }
+  } catch (err) {
+    console.error("[categories] save failed", err);
+    return { error: "Gagal nyimpen kategori. Coba lagi ya." };
+  }
 
   revalidatePath("/categories");
   revalidatePath("/transactions");
@@ -50,14 +57,14 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
   const user = await getCurrentUser();
   if (!user) return { error: "Kamu belum login." };
 
-  const db = createAdminClient();
-  const { error } = await db
-    .from("categories")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
+  if (!isUuid(id)) return { error: "Kategori nggak ketemu." };
 
-  if (error) return { error: error.message };
+  try {
+    await sql`delete from categories where id = ${id} and user_id = ${user.id}`;
+  } catch (err) {
+    console.error("[categories] delete failed", err);
+    return { error: "Gagal hapus kategori. Coba lagi ya." };
+  }
 
   revalidatePath("/categories");
   revalidatePath("/transactions");

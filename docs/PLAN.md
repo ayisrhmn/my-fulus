@@ -10,7 +10,7 @@ configuration change, not a rewrite. Mobile-first PWA.
 | Framework | Next.js (App Router) | 16.3.4 | Active LTS. Turbopack is the default bundler. |
 | Language | TypeScript | 5.x | |
 | Styling | Tailwind CSS | 4.3.3 | v4: configuration lives in CSS via `@theme`; there is no `tailwind.config.js`. |
-| Database + Auth | Supabase (Postgres) | `@supabase/supabase-js` latest + `@supabase/ssr` 0.12.4 | `@supabase/ssr` is the official replacement for the deprecated `auth-helpers` packages. |
+| Database | Postgres (shared server) | `postgres` (postgres.js) 3.x | Was Supabase until Phase 13. Plain SQL, no ORM. |
 | PWA | Serwist (`@serwist/next`) | latest | `next-pwa` is unmaintained; Serwist is its successor and supports Next.js 16. |
 | Deploy | Vercel | free tier | Set install command to `bun install`. |
 | Package manager | Bun | 1.3.x | Lockfile `bun.lock`. No `package-lock.json`. |
@@ -270,6 +270,23 @@ Pre-deploy polish (done):
   `VERCEL_PROJECT_PRODUCTION_URL`), plus `robots.ts` and `sitemap.ts`.
 - `README.md` rewritten; `CLAUDE.md` / `AGENTS.md` updated with the build/dev
   and forms conventions.
+
+### Phase 13 — Supabase → direct Postgres — DONE
+Moved off Supabase onto a schema in a shared, self-hosted Postgres server.
+
+- Deps: `postgres` (postgres.js). Removed `@supabase/supabase-js`.
+- `src/lib/db.ts` — `server-only` `sql` client, `max: 3`, `DB_SCHEMA` applied
+  as the `search_path` so queries use bare table names.
+- All queries ported to SQL tagged templates (`queries.ts`, `auth/codes.ts`,
+  dashboard, transaction-content, both `actions.ts`). The
+  `categories(name, icon)` embed is a `left join` + `json_build_object`;
+  `amount`, `date`, and `created_at` are cast to keep the existing TS shapes.
+- Ids from the URL/client are checked with `isUuid()`; transaction date params
+  fall back to the current month when malformed. DB errors are logged and
+  replaced with generic copy instead of being returned raw.
+- Login user creation is a single `insert … on conflict (email)` upsert.
+- `supabase/migrations/` replaced by `db/schema.sql` (no RLS, no `auth.users`).
+- Env: `DATABASE_URL`, `DB_SCHEMA`. All `SUPABASE_*` vars removed.
 
 ## Known risks
 

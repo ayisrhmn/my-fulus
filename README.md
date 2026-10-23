@@ -8,8 +8,8 @@ personal use, but the data model is multi-user ready.
 
 - **Next.js 16** (App Router, `src/`, `@/*` alias) + **TypeScript**
 - **Tailwind CSS v4** — theme tokens in `src/app/globals.css` (`@theme`), no JS config
-- **Supabase** — Postgres only (no Supabase Auth), server-side access with the
-  service-role key
+- **Postgres** — plain SQL via `postgres` (postgres.js), server-only, tables in
+  a dedicated schema on a shared database
 - **Auth** — custom 6-digit email code, Gmail SMTP via `nodemailer`, `jose` JWT
   session cookie
 - **Serwist** (`@serwist/next`) — service worker / installable PWA
@@ -28,9 +28,8 @@ cp .env.example .env        # then fill in the values below
 
 | Variable | Where |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same page (`anon` / `public` key) |
-| `SUPABASE_SERVICE_ROLE_KEY` | same page (`service_role` key — server-only, keep secret) |
+| `DATABASE_URL` | Postgres connection string (server-only, keep secret) |
+| `DB_SCHEMA` | schema holding the app's tables; applied as the `search_path` |
 | `GMAIL_USER` | the Gmail address that sends login codes |
 | `GMAIL_APP_PASSWORD` | Google Account → Security → App passwords (needs 2FA on) |
 | `AUTH_SECRET` | random 32+ byte string, e.g. `openssl rand -base64 32` |
@@ -38,19 +37,21 @@ cp .env.example .env        # then fill in the values below
 
 ### Database
 
-Run these once in the Supabase SQL editor, in order:
+Create the schema, tables, and default categories once:
 
-1. `supabase/migrations/0001_init.sql` — `categories` / `transactions` tables,
-   the `transaction_type` enum, RLS policies, and the default categories.
-2. `supabase/migrations/0002_custom_auth.sql` — `public.users` and
-   `public.login_codes`, re-points the `user_id` FKs off `auth.users`, and drops
-   the `auth.uid()` RLS policies. Non-destructive; verification queries are in
-   the file's trailing comment.
+```bash
+psql "$DATABASE_URL" -v schema=myfulus -f db/schema.sql
+```
+
+Use the same schema name as `DB_SCHEMA`. There is no RLS: every query filters
+by `user_id` in server code, and the app's database role should only be granted
+access to this schema. The pool is capped at 3 connections per instance because
+the database is shared.
 
 ### Auth
 
-Login is a 6-digit code emailed through Gmail SMTP — no Supabase Auth, no
-dashboard configuration. Set `GMAIL_USER` / `GMAIL_APP_PASSWORD` (App Password,
+Login is a 6-digit code emailed through Gmail SMTP, with no third-party auth
+service. Set `GMAIL_USER` / `GMAIL_APP_PASSWORD` (App Password,
 Google 2FA required) and `AUTH_SECRET`. Gmail SMTP sends to any address at
 ~500 mails/day; past that, switch to a real ESP on a paid domain.
 
@@ -69,10 +70,9 @@ bun run lint
 ## Deploy (Vercel)
 
 1. Import the repo — Bun and Next.js are auto-detected.
-2. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` as
-   environment variables.
-3. Deploy, then add the production `<domain>/auth/callback` to the Supabase
-   Redirect URLs and set the Site URL.
+2. Add the variables from `.env.example` (`DATABASE_URL`, `DB_SCHEMA`,
+   `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `AUTH_SECRET`, `NEXT_PUBLIC_SITE_URL`).
+3. Deploy.
 
 ## Docs
 

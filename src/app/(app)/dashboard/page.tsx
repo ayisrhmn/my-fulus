@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PiggyBank } from "lucide-react";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { sql } from "@/lib/db";
+import { expenseColumns, transactionColumns } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/auth/session";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,7 +14,7 @@ import {
   type ExpenseRow,
 } from "@/components/expense-by-category";
 import { formatIDR } from "@/lib/format";
-import type { TransactionWithCategory } from "@/lib/types";
+import type { TransactionType, TransactionWithCategory } from "@/lib/types";
 
 function monthRange(now = new Date()) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -26,46 +27,41 @@ function monthRange(now = new Date()) {
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const db = createAdminClient();
   const now = new Date();
   const { from, to } = monthRange(now);
 
-  const [{ data: monthRows }, { data: recentRows }, { data: expenseRows }] =
-    await Promise.all([
-      db
-        .from("transactions")
-        .select("amount, type")
-        .eq("user_id", user.id)
-        .gte("date", from)
-        .lt("date", to),
-      db
-        .from("transactions")
-        .select("*, categories(name, icon)")
-        .eq("user_id", user.id)
-        .order("date", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(5),
-      db
-        .from("transactions")
-        .select("amount, category_id, categories(name, icon)")
-        .eq("user_id", user.id)
-        .eq("type", "expense")
-        .gte("date", from)
-        .lt("date", to),
-    ]);
+  const [monthRows, recent, expenses] = await Promise.all([
+    sql<{ amount: number; type: TransactionType }[]>`
+      select amount::float8 as amount, type
+      from transactions
+      where user_id = ${user.id} and date >= ${from} and date < ${to}
+    `,
+    sql<TransactionWithCategory[]>`
+      select ${transactionColumns()}
+      from transactions t
+      left join categories c on c.id = t.category_id
+      where t.user_id = ${user.id}
+      order by t.date desc, t.created_at desc
+      limit 5
+    `,
+    sql<ExpenseRow[]>`
+      select ${expenseColumns()}
+      from transactions t
+      left join categories c on c.id = t.category_id
+      where t.user_id = ${user.id} and t.type = 'expense'
+        and t.date >= ${from} and t.date < ${to}
+    `,
+  ]);
 
   const name = user?.email?.split("@")[0] ?? "kamu";
 
-  const income = (monthRows ?? [])
+  const income = monthRows
     .filter((r) => r.type === "income")
-    .reduce((s, r) => s + Number(r.amount), 0);
-  const expense = (monthRows ?? [])
+    .reduce((s, r) => s + r.amount, 0);
+  const expense = monthRows
     .filter((r) => r.type === "expense")
-    .reduce((s, r) => s + Number(r.amount), 0);
+    .reduce((s, r) => s + r.amount, 0);
   const balance = income - expense;
-
-  const recent = (recentRows ?? []) as TransactionWithCategory[];
-  const expenses = (expenseRows ?? []) as unknown as ExpenseRow[];
   const monthLabel = now.toLocaleDateString("id-ID", {
     month: "long",
     year: "numeric",

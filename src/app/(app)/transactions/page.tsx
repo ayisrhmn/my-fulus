@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCategories } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/auth/session";
-import { monthBounds } from "@/lib/date-range";
+import { isIsoDate, monthBounds } from "@/lib/date-range";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Fab } from "@/components/ui/fab";
 import { TransactionFilters } from "./transaction-filters";
@@ -51,8 +51,8 @@ export default async function TransactionsPage({
 }) {
   const sp = await searchParams;
   const def = monthBounds(0);
-  const from = sp.from ?? def.from;
-  const to = sp.to ?? def.to;
+  const from = isIsoDate(sp.from) ? sp.from : def.from;
+  const to = isIsoDate(sp.to) ? sp.to : def.to;
   const cat = sp.cat ?? "";
   const filtered = sp.from != null || sp.to != null || cat !== "";
   const filterKey = `${from}|${to}|${cat}`;

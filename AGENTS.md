@@ -12,6 +12,8 @@
 - Forms use react-hook-form; no native `<select>` / date input (use the `Select`
   and `DatePicker` primitives). CRUD forms live in a bottom `Sheet`. No
   `window.confirm` — use `InlineDelete` or a confirm sheet. Success → sonner toast.
+- Database is plain Postgres via postgres.js (`src/lib/db.ts`, server-only), tables
+  in the `DB_SCHEMA` schema; see the Database section of `CLAUDE.md`.
 - Work on branch `dev`, one commit per step; do not push (Fariz pushes).
 
 <!-- BEGIN:nextjs-agent-rules -->

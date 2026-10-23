@@ -19,7 +19,7 @@ This project uses **Bun**, not npm.
 
 All user-facing copy is in **Bahasa Indonesia**, casual Gen-Z tone (santai,
 gaul, "kamu" not "Anda"). Applies to UI labels, buttons, empty states, error
-messages, toasts, and the Supabase auth emails. Keep it readable — casual, not
+messages, toasts, and the login-code emails. Keep it readable — casual, not
 cringe. Code identifiers, comments, commit messages, and docs stay in English.
 
 ## Icons
@@ -30,24 +30,39 @@ No emoji in the UI or in seed data. Use `lucide-react` for every icon. Category
 ## Stack
 
 Next.js 16 (App Router, `src/`, `@/*` alias) · TypeScript · Tailwind CSS v4
-(tokens in `src/app/globals.css` via `@theme`, no JS config) · Supabase as a
-plain Postgres store, accessed server-only with the service-role key
-(`src/lib/supabase/admin.ts`) — no Supabase Auth, no RLS, so every query must
-filter `user_id` itself · custom email-code auth (Gmail SMTP via `nodemailer` +
-`jose` JWT session cookie, `src/lib/auth/`; `src/proxy.ts` = Next 16's renamed
-middleware) · Serwist PWA (`src/app/sw.ts`, `manifest.ts`) · `next-themes`.
+(tokens in `src/app/globals.css` via `@theme`, no JS config) · custom email-code
+auth (Gmail SMTP via `nodemailer` + `jose` JWT session cookie, `src/lib/auth/`;
+`src/proxy.ts` = Next 16's renamed middleware) · Serwist PWA (`src/app/sw.ts`,
+`manifest.ts`) · `next-themes`.
+
+## Database
+
+Postgres on a shared server, plain SQL via `postgres` (postgres.js), no ORM.
+
+- `src/lib/db.ts` exports `sql`. It is `server-only`; never import it (or
+  `src/lib/queries.ts`) from a client component. Pool is `max: 3` per instance.
+- Tables live in the schema named by `DB_SCHEMA`, set as the `search_path`, so
+  queries use bare table names. Schema + default categories: `db/schema.sql`.
+- No RLS: every query must filter `user_id` itself.
+- postgres.js returns `Date` for `date`/`timestamptz` and strings for `numeric`.
+  Transaction reads go through `transactionColumns()` / `expenseColumns()` in
+  `src/lib/queries.ts`, which cast to the shapes in `src/lib/types.ts`.
+- Validate ids from the URL or client with `isUuid()` before querying; a
+  malformed uuid is a Postgres error, not an empty result.
+- Never return raw DB error messages to the client; log them and show a
+  generic Indonesian message.
 
 ## Auth
 
 Login is a 6-digit code emailed via Gmail SMTP (`nodemailer`, `src/lib/email.ts`),
 not Supabase Auth (its default SMTP rate limit was too low). Flow:
-`POST /api/auth/request-code` stores a hashed code in `public.login_codes`;
-`POST /api/auth/verify` checks it, upserts `public.users`, and sets a
+`POST /api/auth/request-code` stores a hashed code in `login_codes`;
+`POST /api/auth/verify` checks it, upserts `users`, and sets a
 `jose`-signed `session` cookie (HS256, `AUTH_SECRET`, 7-day expiry).
 `src/lib/auth/token.ts` is edge-safe for `proxy.ts`; `src/lib/auth/session.ts`
 (`getCurrentUser` / `requireUser`) is server-only.
 Env: `GMAIL_USER`, `GMAIL_APP_PASSWORD` (Google account App Password, 2FA on),
-`AUTH_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`. Gmail SMTP caps at ~500 mails/day.
+`AUTH_SECRET`, `DATABASE_URL`, `DB_SCHEMA`. Gmail SMTP caps at ~500 mails/day.
 
 ## Forms & UI conventions
 

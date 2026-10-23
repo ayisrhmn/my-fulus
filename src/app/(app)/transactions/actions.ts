@@ -1,8 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { sql } from "@/lib/db";
+import {
+  categoryFilter,
+  isUuid,
+  transactionColumns,
+} from "@/lib/queries";
 import { getCurrentUser } from "@/lib/auth/session";
+import { isIsoDate } from "@/lib/date-range";
 import type { TransactionType, TransactionWithCategory } from "@/lib/types";
 import { PAGE_SIZE, type TransactionFilters } from "./constants";
 
@@ -28,26 +34,37 @@ export async function saveTransaction(
   if (input.type !== "income" && input.type !== "expense")
     return { error: "Tipe transaksi nggak valid." };
   if (!input.date) return { error: "Tanggal wajib diisi." };
+  // postgres.js serializes date params via `new Date()`, which silently rolls
+  // an impossible date like 2026-02-31 into March; reject it here instead.
+  if (!isIsoDate(input.date)) return { error: "Tanggal nggak valid." };
 
-  const db = createAdminClient();
+  if (input.id && !isUuid(input.id)) return { error: "Transaksi nggak ketemu." };
+  const categoryId = input.category_id || null;
+  if (categoryId && !isUuid(categoryId))
+    return { error: "Kategori nggak valid." };
+
   const row = {
     user_id: user.id,
     amount: input.amount,
     type: input.type,
     date: input.date,
-    category_id: input.category_id || null,
+    category_id: categoryId,
     description: input.description?.trim() || null,
   };
 
-  const { error } = input.id
-    ? await db
-        .from("transactions")
-        .update(row)
-        .eq("id", input.id)
-        .eq("user_id", user.id)
-    : await db.from("transactions").insert(row);
-
-  if (error) return { error: error.message };
+  try {
+    if (input.id) {
+      await sql`
+        update transactions set ${sql(row)}
+        where id = ${input.id} and user_id = ${user.id}
+      `;
+    } else {
+      await sql`insert into transactions ${sql(row)}`;
+    }
+  } catch (err) {
+    console.error("[transactions] save failed", err);
+    return { error: "Gagal nyimpen transaksi. Coba lagi ya." };
+  }
 
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
@@ -60,13 +77,14 @@ export async function deleteTransaction(id: string): Promise<ActionResult> {
   const user = await getCurrentUser();
   if (!user) return { error: "Kamu belum login." };
 
-  const db = createAdminClient();
-  const { error } = await db
-    .from("transactions")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
-  if (error) return { error: error.message };
+  if (!isUuid(id)) return { error: "Transaksi nggak ketemu." };
+
+  try {
+    await sql`delete from transactions where id = ${id} and user_id = ${user.id}`;
+  } catch (err) {
+    console.error("[transactions] delete failed", err);
+    return { error: "Gagal hapus transaksi. Coba lagi ya." };
+  }
 
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
@@ -77,16 +95,15 @@ export async function getTransaction(
   id: string,
 ): Promise<TransactionWithCategory | null> {
   const user = await getCurrentUser();
-  if (!user) return null;
+  if (!user || !isUuid(id)) return null;
 
-  const db = createAdminClient();
-  const { data } = await db
-    .from("transactions")
-    .select("*, categories(name, icon)")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
-  return (data as TransactionWithCategory) ?? null;
+  const [row] = await sql<TransactionWithCategory[]>`
+    select ${transactionColumns()}
+    from transactions t
+    left join categories c on c.id = t.category_id
+    where t.id = ${id} and t.user_id = ${user.id}
+  `;
+  return row ?? null;
 }
 
 export async function loadMoreTransactions(
@@ -96,20 +113,14 @@ export async function loadMoreTransactions(
   const user = await getCurrentUser();
   if (!user) return [];
 
-  const db = createAdminClient();
-  let q = db
-    .from("transactions")
-    .select("*, categories(name, icon)")
-    .eq("user_id", user.id)
-    .gte("date", filters.from)
-    .lte("date", filters.to)
-    .order("date", { ascending: false })
-    .order("created_at", { ascending: false })
-    .range(offset, offset + PAGE_SIZE - 1);
-
-  if (filters.cat === "none") q = q.is("category_id", null);
-  else if (filters.cat) q = q.eq("category_id", filters.cat);
-
-  const { data } = await q;
-  return (data ?? []) as TransactionWithCategory[];
+  return sql<TransactionWithCategory[]>`
+    select ${transactionColumns()}
+    from transactions t
+    left join categories c on c.id = t.category_id
+    where t.user_id = ${user.id}
+      and t.date >= ${filters.from} and t.date <= ${filters.to}
+      ${categoryFilter(filters.cat)}
+    order by t.date desc, t.created_at desc
+    limit ${PAGE_SIZE} offset ${offset}
+  `;
 }
